@@ -114,7 +114,7 @@
 
       <!-- Formulário: Recuperar Senha -->
       <div id="bloco-recuperar" class="space-y-4 hidden">
-        <p class="text-xs text-slate-400">Insira o e-mail cadastrado ou o seu ID (Passaporte) para receber o link de redefinição de senha.</p>
+        <p class="text-xs text-slate-400">Insira o e-mail cadastrado ou o seu ID (Passaporte) para receber as instruções de recuperação.</p>
         <div>
           <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Passaporte ou E-mail</label>
           <input id="rec-termo" type="text" placeholder="ID ou email cadastrado..." 
@@ -122,7 +122,7 @@
         </div>
 
         <button onclick="recuperarSenha()" class="w-full bg-amber-600 hover:bg-amber-500 text-black font-bold uppercase py-2.5 rounded text-xs tracking-wider transition">
-          Enviar E-mail de Recuperação
+          Enviar Instruções de Recuperação
         </button>
 
         <div class="text-center pt-2 border-t border-slate-800">
@@ -195,7 +195,7 @@
 
       <div class="bg-slate-950/60 p-3 rounded border border-slate-800/80 text-[11px] text-slate-500">
         <p class="text-amber-500 font-bold mb-1">AVISO DE SEGURANÇA</p>
-        Todas as pesquisas deixam registros auditáveis. O uso indevido constitui metagaming e infração correcional.
+        Todas as pesquisas deixam registros auditáveis. O uso indevido constitui infração correcional.
       </div>
     </aside>
 
@@ -299,14 +299,14 @@
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Redefinição de Senha (Última Instância)</h2>
-          <p class="text-xs text-slate-400 mb-4">Envie um e-mail de redefinição forçado para o operador pelo Passaporte dele.</p>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Redefinição de Senha (Administrador)</h2>
+          <p class="text-xs text-slate-400 mb-4">Envie um e-mail com link de redefinição para o operador pelo Passaporte dele.</p>
           
           <div class="flex gap-3 max-w-md">
             <input id="admin-reset-id" type="text" placeholder="Passaporte (ID)..." 
               class="flex-1 bg-slate-950 border border-slate-800 rounded px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500" />
             <button onclick="adminEnviarResetSenha()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded text-xs font-bold uppercase transition">
-              Disparar Reset
+              Disparar Redefinição
             </button>
           </div>
         </div>
@@ -390,7 +390,39 @@
     const auth = firebase.auth();
 
     let usuarioLogado = null;
-    let cadastrandoNovo = false; // Flag para evitar que onAuthStateChanged interfira no cadastro
+    let cadastrandoNovo = false;
+
+    // --- FUNÇÃO PARA TRADUZIR ERROS DO FIREBASE PARA PORTUGUÊS CLARO ---
+    function traduzirErro(erro) {
+      const codigo = erro.code || "";
+      const mensagem = erro.message || "";
+
+      if (codigo === 'auth/email-already-in-use' || mensagem.includes('email-already-in-use')) {
+        return 'Este endereço de e-mail já está em uso por outra conta. Utilize outro e-mail ou recupere a sua senha.';
+      }
+      if (codigo === 'auth/invalid-email' || mensagem.includes('invalid-email')) {
+        return 'O endereço de e-mail informado é inválido. Verifique se digitou corretamente.';
+      }
+      if (codigo === 'auth/weak-password' || mensagem.includes('weak-password')) {
+        return 'A senha é muito fraca. Ela deve conter pelo menos 6 dígitos.';
+      }
+      if (codigo === 'auth/user-not-found' || mensagem.includes('user-not-found')) {
+        return 'Nenhuma conta encontrada com essas credenciais.';
+      }
+      if (codigo === 'auth/wrong-password' || mensagem.includes('wrong-password') || codigo === 'auth/invalid-credential') {
+        return 'Passaporte ou senha incorretos. Verifique suas credenciais.';
+      }
+      if (codigo === 'auth/operation-not-allowed') {
+        return 'O método de login por e-mail e senha não está ativado no Firebase Console.';
+      }
+      if (codigo === 'auth/too-many-requests') {
+        return 'Muitas tentativas sem sucesso. Aguarde alguns minutos antes de tentar novamente.';
+      }
+      if (codigo === 'permission-denied') {
+        return 'Permissão negada pelo banco de dados. Verifique as regras do Firestore.';
+      }
+      return mensagem || 'Ocorreu um erro no processamento. Tente novamente.';
+    }
 
     // --- CONTROLE DA TELA DE LOGIN ---
     function alternarVisaoAuth(modo) {
@@ -424,27 +456,24 @@
       const btn = document.getElementById('btn-cad-auth');
 
       if (!id || !email || !senha) {
-        return mostrarAlertaLogin('Preencha todos os campos obrigatórios.');
+        return mostrarAlertaLogin('Por favor, preencha todos os campos obrigatórios.');
       }
       if (senha.length < 6) {
-        return mostrarAlertaLogin('A senha precisa ter pelo menos 6 caracteres.');
+        return mostrarAlertaLogin('A senha precisa conter no mínimo 6 dígitos.');
       }
 
       btn.disabled = true;
-      btn.textContent = "Processando...";
+      btn.textContent = "Processando solicitação...";
       cadastrandoNovo = true;
 
       try {
-        // 1. Checa se o Passaporte já está registrado no Firestore
         const checagemId = await db.collection("usuarios").doc(id).get();
         if (checagemId.exists) {
-          throw new Error('Este Passaporte (ID) já está registrado.');
+          throw new Error('Este Passaporte (ID) já foi solicitado ou já possui cadastro ativo.');
         }
 
-        // 2. Cria a conta no Firebase Authentication
         const userCred = await auth.createUserWithEmailAndPassword(email, senha);
 
-        // 3. Grava as informações no Firestore
         await db.collection("usuarios").doc(id).set({
           passaporte: id,
           email: email,
@@ -454,27 +483,17 @@
           criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 4. Desloga a sessão aberta para que não entre antes de ser aprovado
         await auth.signOut();
 
-        // 5. Limpa os campos
         document.getElementById('cad-auth-id').value = '';
         document.getElementById('cad-auth-email').value = '';
         document.getElementById('cad-auth-senha').value = '';
 
-        // 6. Volta para o Login com mensagem clara de sucesso
         alternarVisaoAuth('login');
-        mostrarAlertaLogin(`Solicitação enviada com sucesso! O cadastro para o Passaporte ${id} foi realizado e está aguardando a liberação de um Administrador.`, 'sucesso');
+        mostrarAlertaLogin(`Solicitação enviada com sucesso! O credenciamento para o Passaporte ${id} está aguardando a liberação de um Administrador.`, 'sucesso');
 
       } catch (err) {
-        console.error("Erro no cadastro:", err);
-        let msgErro = err.message;
-        if (err.code === 'auth/email-already-in-use') msgErro = 'Este e-mail já está sendo utilizado.';
-        if (err.code === 'auth/invalid-email') msgErro = 'Formato de e-mail inválido.';
-        if (err.code === 'auth/weak-password') msgErro = 'A senha deve conter no mínimo 6 caracteres.';
-        if (err.code === 'auth/operation-not-allowed') msgErro = 'O login por E-mail/Senha não foi ativado no Firebase Console (Sign-in method).';
-        
-        mostrarAlertaLogin(msgErro, 'erro');
+        mostrarAlertaLogin(traduzirErro(err), 'erro');
       } finally {
         cadastrandoNovo = false;
         btn.disabled = false;
@@ -488,32 +507,27 @@
       const senha = document.getElementById('login-senha').value.trim();
       const btn = document.getElementById('btn-login');
 
-      if (!id || !senha) return mostrarAlertaLogin('Informe o Passaporte (ID) e a senha.');
+      if (!id || !senha) return mostrarAlertaLogin('Informe o seu Passaporte (ID) e a sua senha.');
 
       btn.disabled = true;
-      btn.textContent = "Autenticando...";
+      btn.textContent = "Validando acesso...";
 
       try {
         const docUser = await db.collection("usuarios").doc(id).get();
         if (!docUser.exists) {
-          throw new Error('Passaporte (ID) não cadastrado no sistema.');
+          throw new Error('Passaporte (ID) não encontrado em nosso banco de dados.');
         }
 
         const dadosUser = docUser.data();
 
         if (dadosUser.status !== 'APROVADO') {
-          throw new Error('Acesso pendente: Sua conta ainda aguarda liberação de um Administrador.');
+          throw new Error('Credenciamento pendente: Sua conta ainda está aguardando a liberação de um Administrador.');
         }
 
         await auth.signInWithEmailAndPassword(dadosUser.email, senha);
 
       } catch (err) {
-        console.error("Erro no login:", err);
-        let msg = err.message;
-        if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-          msg = 'Passaporte ou senha incorretos.';
-        }
-        mostrarAlertaLogin(msg, 'erro');
+        mostrarAlertaLogin(traduzirErro(err), 'erro');
       } finally {
         btn.disabled = false;
         btn.textContent = "Acessar Terminal";
@@ -523,27 +537,27 @@
     // --- RECUPERAÇÃO DE SENHA POR E-MAIL ---
     async function recuperarSenha() {
       const termo = document.getElementById('rec-termo').value.trim();
-      if (!termo) return mostrarAlertaLogin('Digite seu Passaporte (ID) ou E-mail.');
+      if (!termo) return mostrarAlertaLogin('Informe o seu Passaporte (ID) ou o e-mail cadastrado.');
 
       let emailDestino = termo;
 
       try {
         if (!termo.includes('@')) {
           const docUser = await db.collection("usuarios").doc(termo).get();
-          if (!docUser.exists) return mostrarAlertaLogin('Passaporte (ID) não encontrado.');
+          if (!docUser.exists) return mostrarAlertaLogin('Passaporte (ID) não encontrado nos registros.');
           emailDestino = docUser.data().email;
         }
 
         await auth.sendPasswordResetEmail(emailDestino);
-        mostrarAlertaLogin(`Link de redefinição enviado com sucesso para: ${emailDestino}`, 'sucesso');
+        mostrarAlertaLogin(`E-mail com instruções enviado com sucesso para: ${emailDestino}`, 'sucesso');
       } catch (err) {
-        mostrarAlertaLogin('Erro ao enviar recuperação: ' + err.message, 'erro');
+        mostrarAlertaLogin(traduzirErro(err), 'erro');
       }
     }
 
     // --- MONITOR DE SESSÃO DO FIREBASE ---
     auth.onAuthStateChanged(async (user) => {
-      if (cadastrandoNovo) return; // Não interfere no fluxo se estiver salvando cadastro
+      if (cadastrandoNovo) return;
 
       if (user) {
         const q = await db.collection("usuarios").where("uid", "==", user.uid).limit(1).get();
@@ -582,7 +596,7 @@
       db.collection("usuarios").where("status", "==", "PENDENTE").onSnapshot((snap) => {
         const tbody = document.getElementById('tabela-pendentes');
         if (snap.empty) {
-          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente no momento.</td></tr>`;
           return;
         }
 
@@ -604,7 +618,7 @@
     }
 
     async function aprovarUsuario(passaporte) {
-      if (!confirm(`Deseja aprovar o operador do Passaporte ${passaporte}?`)) return;
+      if (!confirm(`Deseja aprovar o credenciamento do Passaporte ${passaporte}?`)) return;
       try {
         await db.collection("usuarios").doc(passaporte).update({
           status: "APROVADO",
@@ -612,7 +626,7 @@
         });
         alert(`Passaporte ${passaporte} aprovado com sucesso!`);
       } catch (err) {
-        alert("Erro ao aprovar: " + err.message);
+        alert("Erro ao aprovar: " + traduzirErro(err));
       }
     }
 
@@ -622,14 +636,14 @@
 
       try {
         const docUser = await db.collection("usuarios").doc(passaporte).get();
-        if (!docUser.exists) return alert('Usuário não encontrado.');
+        if (!docUser.exists) return alert('Operador não encontrado.');
 
         const email = docUser.data().email;
         await auth.sendPasswordResetEmail(email);
-        alert(`Link de redefinição enviado com sucesso para ${email}!`);
+        alert(`E-mail com link de redefinição de senha enviado com sucesso para ${email}!`);
         document.getElementById('admin-reset-id').value = '';
       } catch (err) {
-        alert("Erro ao redefinir: " + err.message);
+        alert("Erro ao solicitar redefinição: " + traduzirErro(err));
       }
     }
 
@@ -720,7 +734,7 @@
 
         fecharModalCadastro();
       } catch (err) {
-        alert("Erro ao gravar: " + err.message);
+        alert("Erro ao gravar: " + traduzirErro(err));
       }
     }
 
@@ -795,7 +809,7 @@
         conteudoResultado.innerHTML = `<span class="text-red-400">Nenhum registro encontrado para "${termo}".</span>`;
 
       } catch (err) {
-        conteudoResultado.innerHTML = `<span class="text-red-400">Erro na consulta: ${err.message}</span>`;
+        conteudoResultado.innerHTML = `<span class="text-red-400">Erro na consulta: ${traduzirErro(err)}</span>`;
       }
     }
 
