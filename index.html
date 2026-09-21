@@ -284,6 +284,8 @@
 
       <!-- ================= MÓDULO ADMIN: GESTÃO DE ACESSOS ================= -->
       <section id="modulo-admin" class="hidden space-y-6">
+        
+        <!-- Aprovações Pendentes -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2">Aprovações de Credenciamento Pendentes</h2>
           <p class="text-xs text-slate-400 mb-4">Autorize novos agentes e investigadores a utilizarem o sistema.</p>
@@ -308,6 +310,32 @@
           </div>
         </div>
 
+        <!-- Agentes Ativos no Sistema (Editar Nome e Cargo) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Quadro de Operadores Credenciados</h2>
+          <p class="text-xs text-slate-400 mb-4">Altere o nome operacional, patente ou atribuição de qualquer agente ativo.</p>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Passaporte (ID)</th>
+                  <th class="p-3">Nome Operacional</th>
+                  <th class="p-3">Cargo / Função</th>
+                  <th class="p-3">E-mail</th>
+                  <th class="p-3 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-ativos" class="divide-y divide-slate-800 font-mono">
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">A carregar agentes...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Redefinição de Senha -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Redefinição de Senha (Direção-Geral)</h2>
           <p class="text-xs text-slate-400 mb-4">Envie um e-mail com link de redefinição para o operador pelo Passaporte dele.</p>
@@ -323,6 +351,44 @@
       </section>
 
     </main>
+  </div>
+
+  <!-- Modal de Edição de Agente (Nome / Cargo) -->
+  <div id="modal-editar-usuario" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Modificar Dados do Operador</h3>
+        <button onclick="fecharModalEdicaoUsuario()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <input type="hidden" id="edit-user-id" />
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Passaporte (ID)</label>
+          <input id="edit-user-id-display" type="text" disabled class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-500 font-mono" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Nome Operacional</label>
+          <input id="edit-user-nome" type="text" placeholder="Ex: Carlos Eduardo Silva" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Cargo / Função</label>
+          <select id="edit-user-cargo" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
+            <option value="AGENTE">Agente Federal</option>
+            <option value="ESCRIVAO">Escrivão Federal</option>
+            <option value="PERITO">Perito Federal</option>
+            <option value="DELEGADO">Delegado Federal</option>
+            <option value="DIRETOR_GERAL">Diretor-Geral</option>
+          </select>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button onclick="fecharModalEdicaoUsuario()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded font-bold uppercase transition">Cancelar</button>
+          <button onclick="salvarAlteracaoUsuario()" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded font-bold uppercase transition">Salvar Alterações</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Modal de Cadastro Rápido (Cidadãos / Veículos) -->
@@ -402,7 +468,6 @@
     let usuarioLogado = null;
     let cadastrandoNovo = false;
 
-    // --- FORMATAÇÃO DE CARGO VISUAL ---
     function formatarCargo(cargo) {
       if (cargo === 'DIRETOR_GERAL' || cargo === 'ADMIN') return 'Diretor-Geral';
       if (cargo === 'DELEGADO') return 'Delegado Federal';
@@ -411,39 +476,31 @@
       return 'Agente Federal';
     }
 
-    // --- TRADUTOR DE ERROS ---
     function traduzirErro(erro) {
       const codigo = erro.code || "";
       const mensagem = erro.message || "";
 
       if (codigo === 'auth/email-already-in-use' || mensagem.includes('email-already-in-use')) {
-        return 'Este endereço de e-mail já está em uso por outra conta. Utilize outro e-mail ou recupere a sua senha.';
+        return 'Este endereço de e-mail já está em uso por outra conta.';
       }
       if (codigo === 'auth/invalid-email' || mensagem.includes('invalid-email')) {
-        return 'O endereço de e-mail informado é inválido. Verifique se digitou corretamente.';
+        return 'O endereço de e-mail informado é inválido.';
       }
       if (codigo === 'auth/weak-password' || mensagem.includes('weak-password')) {
-        return 'A senha é muito fraca. Ela deve conter pelo menos 6 dígitos.';
+        return 'A senha deve conter pelo menos 6 dígitos.';
       }
       if (codigo === 'auth/user-not-found' || mensagem.includes('user-not-found')) {
         return 'Nenhuma conta encontrada com essas credenciais.';
       }
       if (codigo === 'auth/wrong-password' || mensagem.includes('wrong-password') || codigo === 'auth/invalid-credential') {
-        return 'Passaporte ou senha incorretos. Verifique suas credenciais.';
-      }
-      if (codigo === 'auth/operation-not-allowed') {
-        return 'O método de login por e-mail e senha não está ativado no Firebase Console.';
+        return 'Passaporte ou senha incorretos.';
       }
       if (codigo === 'auth/too-many-requests') {
-        return 'Muitas tentativas sem sucesso. Aguarde alguns minutos antes de tentar novamente.';
-      }
-      if (codigo === 'permission-denied') {
-        return 'Permissão negada pelo banco de dados. Verifique as regras do Firestore.';
+        return 'Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.';
       }
       return mensagem || 'Ocorreu um erro no processamento. Tente novamente.';
     }
 
-    // --- CONTROLE DA TELA DE LOGIN ---
     function alternarVisaoAuth(modo) {
       document.getElementById('bloco-login').classList.add('hidden');
       document.getElementById('bloco-cadastro').classList.add('hidden');
@@ -467,7 +524,6 @@
       document.getElementById('login-alerta').classList.add('hidden');
     }
 
-    // --- CADASTRO (NOME + ID + EMAIL + SENHA) ---
     async function realizarCadastro() {
       const nome = document.getElementById('cad-auth-nome').value.trim();
       const id = document.getElementById('cad-auth-id').value.trim();
@@ -483,7 +539,7 @@
       }
 
       btn.disabled = true;
-      btn.textContent = "A processar solicitação...";
+      btn.textContent = "A processar...";
       cadastrandoNovo = true;
 
       try {
@@ -523,7 +579,6 @@
       }
     }
 
-    // --- LOGIN (ID + SENHA) ---
     async function realizarLogin() {
       const id = document.getElementById('login-id').value.trim();
       const senha = document.getElementById('login-senha').value.trim();
@@ -556,7 +611,6 @@
       }
     }
 
-    // --- RECUPERAÇÃO DE SENHA ---
     async function recuperarSenha() {
       const termo = document.getElementById('rec-termo').value.trim();
       if (!termo) return mostrarAlertaLogin('Informe o seu Passaporte (ID) ou o e-mail cadastrado.');
@@ -577,7 +631,6 @@
       }
     }
 
-    // --- MONITOR DE SESSÃO DO FIREBASE ---
     auth.onAuthStateChanged(async (user) => {
       if (cadastrandoNovo) return;
 
@@ -600,6 +653,7 @@
           if (dados.cargo === 'DIRETOR_GERAL' || dados.cargo === 'ADMIN') {
             document.getElementById('btn-mod-admin').classList.remove('hidden');
             carregarUsuariosPendentes();
+            carregarUsuariosAtivos();
           }
 
           carregarRecentes();
@@ -639,6 +693,91 @@
           `;
         });
       });
+    }
+
+    // Carregar Lista de Agentes Ativos para Edição
+    function carregarUsuariosAtivos() {
+      db.collection("usuarios").where("status", "==", "APROVADO").onSnapshot((snap) => {
+        const tbody = document.getElementById('tabela-ativos');
+        if (snap.empty) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhum agente ativo registrado.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = "";
+        snap.forEach((doc) => {
+          const u = doc.data();
+          tbody.innerHTML += `
+            <tr class="hover:bg-slate-950/40">
+              <td class="p-3 text-amber-500 font-bold">${u.passaporte}</td>
+              <td class="p-3 font-sans font-medium text-slate-200">${u.nome || 'Não informado'}</td>
+              <td class="p-3 font-sans text-amber-400">${formatarCargo(u.cargo)}</td>
+              <td class="p-3 font-sans text-slate-400">${u.email}</td>
+              <td class="p-3 text-right">
+                <button onclick="abrirModalEdicaoUsuario('${u.passaporte}', '${encodeURIComponent(u.nome || '')}', '${u.cargo}')" 
+                  class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-2.5 py-1 rounded text-[11px] font-bold font-sans uppercase transition">
+                  Editar
+                </button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+    }
+
+    // Funções do Modal de Edição de Operador
+    function abrirModalEdicaoUsuario(id, nomeCodificado, cargo) {
+      const nome = decodeURIComponent(nomeCodificado);
+      document.getElementById('edit-user-id').value = id;
+      document.getElementById('edit-user-id-display').value = id;
+      document.getElementById('edit-user-nome').value = nome;
+      document.getElementById('edit-user-cargo').value = (cargo === 'ADMIN') ? 'DIRETOR_GERAL' : cargo;
+
+      document.getElementById('modal-editar-usuario').classList.remove('hidden');
+      document.getElementById('modal-editar-usuario').classList.add('flex');
+    }
+
+    function fecharModalEdicaoUsuario() {
+      document.getElementById('modal-editar-usuario').classList.add('hidden');
+      document.getElementById('modal-editar-usuario').classList.remove('flex');
+    }
+
+    async function salvarAlteracaoUsuario() {
+      const id = document.getElementById('edit-user-id').value;
+      const novoNome = document.getElementById('edit-user-nome').value.trim();
+      const novoCargo = document.getElementById('edit-user-cargo').value;
+
+      if (!novoNome) return alert('O nome operacional não pode ficar vazio.');
+
+      try {
+        await db.collection("usuarios").doc(id).update({
+          nome: novoNome,
+          cargo: novoCargo,
+          alteradoPor: usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "DIRETOR_GERAL",
+          alteradoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Registrar auditoria
+        await db.collection("auditoria").add({
+          acao: "ALTERACAO_USUARIO",
+          alvo: `ID ${id} - Novo Nome: ${novoNome} - Cargo: ${novoCargo}`,
+          agente: usuarioLogado ? `${usuarioLogado.nome} (ID: ${usuarioLogado.passaporte})` : "DIRETOR_GERAL",
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`Dados do Passaporte ${id} atualizados com sucesso!`);
+        fecharModalEdicaoUsuario();
+
+        // Se o próprio operador alterou seu perfil, atualiza o topo
+        if (usuarioLogado && usuarioLogado.passaporte === id) {
+          usuarioLogado.nome = novoNome;
+          usuarioLogado.cargo = novoCargo;
+          document.getElementById('top-usuario-nome').textContent = novoNome;
+          document.getElementById('top-usuario-cargo').textContent = formatarCargo(novoCargo);
+        }
+      } catch (err) {
+        alert("Erro ao atualizar operador: " + traduzirErro(err));
+      }
     }
 
     async function aprovarUsuario(passaporte) {
