@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SISINT - Departamento de Polícia Federal</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Firebase SDKs (Compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+
+  <style>
+    body {
+      background-color: #080c14;
+      color: #e2e8f0;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #080c14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1e293b;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #334155;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans select-none">
+
+  <!-- Cabeçalho Institucional -->
+  <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 bg-amber-600 rounded flex items-center justify-center font-black text-black text-lg tracking-wider shadow-lg shadow-amber-900/20">
+        PF
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm font-bold uppercase tracking-wider text-slate-100">SISINT / DPF</h1>
+          <span class="text-[10px] bg-slate-800 border border-slate-700 text-slate-400 px-1.5 py-0.5 rounded font-mono">v1.0-RP</span>
+        </div>
+        <p class="text-[11px] text-amber-500 font-semibold tracking-wide">Sistema Integrado de Inteligência Policial</p>
+      </div>
+    </div>
+
+    <!-- Indicador de Operador e Banco -->
+    <div class="flex items-center gap-4">
+      <div class="text-right border-r border-slate-800 pr-4">
+        <p class="text-xs font-semibold text-slate-200">Agente Federal</p>
+        <p class="text-[10px] text-amber-500 font-mono">Matrícula: DPF-001</p>
+      </div>
+      <div id="status-conexao" class="text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-400 font-mono">
+        Conectando...
+      </div>
+    </div>
+  </header>
+
+  <!-- Layout Principal -->
+  <div class="flex-1 flex overflow-hidden">
+    
+    <!-- Sidebar de Navegação -->
+    <aside class="w-64 bg-slate-900/80 border-r border-slate-800 flex flex-col justify-between p-4">
+      <nav class="space-y-1">
+        <p class="text-[10px] uppercase font-bold text-slate-500 tracking-wider px-3 mb-2">Módulos Operacionais</p>
+        
+        <button onclick="trocarModulo('consulta')" id="btn-mod-consulta" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition bg-amber-600/10 text-amber-500 border-l-2 border-amber-500">
+          Terminal de Consulta
+        </button>
+
+        <button onclick="trocarModulo('inqueritos')" id="btn-mod-inqueritos" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+          Inquéritos (IPL)
+        </button>
+
+        <button onclick="trocarModulo('operacoes')" id="btn-mod-operacoes" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+          Operações & Bens
+        </button>
+
+        <button onclick="trocarModulo('auditoria')" id="btn-mod-auditoria" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+          Auditoria & Logs
+        </button>
+      </nav>
+
+      <div class="bg-slate-950/60 p-3 rounded border border-slate-800/80 text-[11px] text-slate-500">
+        <p class="text-amber-500 font-bold mb-1">AVISO DE SEGURANÇA</p>
+        Todas as pesquisas deixam registros auditáveis. O uso indevido constitui metagaming e infração correcional.
+      </div>
+    </aside>
+
+    <!-- Área de Exibição dos Módulos -->
+    <main class="flex-1 p-6 overflow-y-auto bg-[#080c14]">
+
+      <!-- ================= MÓDULO 1: CONSULTA E CADASTRO ================= -->
+      <section id="modulo-consulta" class="space-y-6">
+        
+        <!-- Barra de Busca -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <div class="flex justify-between items-center mb-3">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Consulta Unificada (Cidadãos & Veículos)</h2>
+            <button onclick="abrirModalCadastro()" class="bg-amber-600 hover:bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded transition uppercase">
+              + Novo Cadastro
+            </button>
+          </div>
+          
+          <div class="flex gap-3">
+            <input id="input-busca" type="text" placeholder="Digite CPF, Nome do Cidadão ou Placa de Veículo..." 
+              class="flex-1 bg-slate-950 border border-slate-800 rounded px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500 placeholder:text-slate-600" />
+            <button onclick="executarConsulta()" class="bg-slate-800 hover:bg-slate-700 text-slate-100 px-6 py-2 rounded text-xs font-bold uppercase tracking-wider border border-slate-700 transition">
+              Consultar
+            </button>
+          </div>
+        </div>
+
+        <!-- Área de Resultados -->
+        <div id="resultado-pesquisa" class="hidden">
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500 mb-4 border-b border-slate-800 pb-2">Resultado Encontrado</h3>
+            <div id="conteudo-resultado" class="text-sm space-y-3"></div>
+          </div>
+        </div>
+
+        <!-- Tabela de Cadastros Recentes -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Registros Recentes no Sistema</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Identificador</th>
+                  <th class="p-3">Nome / Modelo</th>
+                  <th class="p-3">Tipo</th>
+                  <th class="p-3">Situação</th>
+                  <th class="p-3 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-recentes" class="divide-y divide-slate-800 font-mono">
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">Carregando registros...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Placeholder dos Módulos Seguintes -->
+      <section id="modulo-inqueritos" class="hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Inquéritos Policiais (IPL)</h2>
+          <p class="text-xs text-slate-400 mt-2">Dossiês, mandados e quadros de inteligência serão configurados nesta aba.</p>
+        </div>
+      </section>
+
+      <section id="modulo-operacoes" class="hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Operações e Apreensões</h2>
+          <p class="text-xs text-slate-400 mt-2">Termos de apreensão, drogas, armas e cadeia de custódia de bens.</p>
+        </div>
+      </section>
+
+      <section id="modulo-auditoria" class="hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
+          <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Auditoria e Corregedoria</h2>
+          <p class="text-xs text-slate-400 mt-2">Histórico completo de quem pesquisou quais registros e em qual data/hora.</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Modal de Cadastro Rápido -->
+  <div id="modal-cadastro" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Cadastrar no Banco de Dados</h3>
+        <button onclick="fecharModalCadastro()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Tipo de Registro</label>
+          <select id="cad-tipo" onchange="alternarCamposCadastro()" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
+            <option value="cidadao">Cidadão (CPF)</option>
+            <option value="veiculo">Veículo / Aeronave / Embarcação</option>
+          </select>
+        </div>
+
+        <!-- Campos Cidadão -->
+        <div id="campos-cidadao" class="space-y-3">
+          <div>
+            <label class="block text-slate-400 mb-1">CPF</label>
+            <input id="cad-cpf" type="text" placeholder="000.000.000-00" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Nome Completo</label>
+            <input id="cad-nome" type="text" placeholder="Ex: Carlos Eduardo Silva" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Situação de Mandado</label>
+            <select id="cad-mandado" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="NENHUM">Sem Mandados Ativos</option>
+              <option value="PRISAO_PREVENTIVA">Mandado de Prisão Preventiva</option>
+              <option value="BUSCA_APREENSAO">Mandado de Busca e Apreensão</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Campos Veículo -->
+        <div id="campos-veiculo" class="space-y-3 hidden">
+          <div>
+            <label class="block text-slate-400 mb-1">Placa / Prefixo</label>
+            <input id="cad-placa" type="text" placeholder="Ex: ABC1D23" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 uppercase" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Modelo / Descrição</label>
+            <input id="cad-modelo" type="text" placeholder="Ex: Helicóptero Bell 206 / Hilux SW4" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">CPF do Proprietário</label>
+            <input id="cad-proprietario" type="text" placeholder="000.000.000-00" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button onclick="fecharModalCadastro()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded font-bold uppercase transition">Cancelar</button>
+          <button onclick="salvarRegistro()" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded font-bold uppercase transition">Gravar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lógica da Aplicação -->
+  <script>
+    // 1. Inicialização do Firebase com as suas credenciais
+    const firebaseConfig = {
+      apiKey: "AIzaSyCVQGVmjFnBFD_lePb1mDnTg9xFOt3eb1M",
+      authDomain: "systempf-d451b.firebaseapp.com",
+      projectId: "systempf-d451b",
+      storageBucket: "systempf-d451b.firebasestorage.app",
+      messagingSenderId: "242242628751",
+      appId: "1:242242628751:web:f23c1b8096d1cce6d054fa"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const statusEl = document.getElementById('status-conexao');
+    if (db) {
+      statusEl.textContent = "● Firestore Conectado";
+      statusEl.className = "text-[11px] px-2.5 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono";
+    }
+
+    // 2. Navegação entre Módulos
+    function trocarModulo(modulo) {
+      const modulos = ['consulta', 'inqueritos', 'operacoes', 'auditoria'];
+      modulos.forEach(m => {
+        document.getElementById(`modulo-${m}`).classList.add('hidden');
+        const btn = document.getElementById(`btn-mod-${m}`);
+        btn.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200";
+      });
+
+      document.getElementById(`modulo-${modulo}`).classList.remove('hidden');
+      const btnAtivo = document.getElementById(`btn-mod-${modulo}`);
+      btnAtivo.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition bg-amber-600/10 text-amber-500 border-l-2 border-amber-500";
+    }
+
+    // 3. Controle do Modal
+    function abrirModalCadastro() {
+      document.getElementById('modal-cadastro').classList.remove('hidden');
+      document.getElementById('modal-cadastro').classList.add('flex');
+    }
+
+    function fecharModalCadastro() {
+      document.getElementById('modal-cadastro').classList.add('hidden');
+      document.getElementById('modal-cadastro').classList.remove('flex');
+    }
+
+    function alternarCamposCadastro() {
+      const tipo = document.getElementById('cad-tipo').value;
+      if (tipo === 'cidadao') {
+        document.getElementById('campos-cidadao').classList.remove('hidden');
+        document.getElementById('campos-veiculo').classList.add('hidden');
+      } else {
+        document.getElementById('campos-cidadao').classList.add('hidden');
+        document.getElementById('campos-veiculo').classList.remove('hidden');
+      }
+    }
+
+    // 4. Gravação de Dados no Firestore com Log de Auditoria
+    async function salvarRegistro() {
+      const tipo = document.getElementById('cad-tipo').value;
+
+      try {
+        if (tipo === 'cidadao') {
+          const cpf = document.getElementById('cad-cpf').value.trim();
+          const nome = document.getElementById('cad-nome').value.trim();
+          const mandado = document.getElementById('cad-mandado').value;
+
+          if (!cpf || !nome) return alert('Preencha CPF e Nome.');
+
+          await db.collection("cidadaos").doc(cpf).set({
+            cpf,
+            nome,
+            mandado,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          // Log de Auditoria
+          await db.collection("auditoria").add({
+            acao: "CADASTRO_CIDADAO",
+            alvo: cpf,
+            agente: "DPF-001",
+            data: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+        } else {
+          const placa = document.getElementById('cad-placa').value.trim().toUpperCase();
+          const modelo = document.getElementById('cad-modelo').value.trim();
+          const proprietario = document.getElementById('cad-proprietario').value.trim();
+
+          if (!placa || !modelo) return alert('Preencha Placa e Modelo.');
+
+          await db.collection("veiculos").doc(placa).set({
+            placa,
+            modelo,
+            proprietario,
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          // Log de Auditoria
+          await db.collection("auditoria").add({
+            acao: "CADASTRO_VEICULO",
+            alvo: placa,
+            agente: "DPF-001",
+            data: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        }
+
+        fecharModalCadastro();
+        carregarRecentes();
+      } catch (err) {
+        alert("Erro ao gravar: " + err.message);
+      }
+    }
+
+    // 5. Consulta Unificada
+    async function executarConsulta() {
+      const termo = document.getElementById('input-busca').value.trim();
+      const areaResultado = document.getElementById('resultado-pesquisa');
+      const conteudoResultado = document.getElementById('conteudo-resultado');
+
+      if (!termo) return;
+
+      conteudoResultado.innerHTML = "Buscando nos arquivos federais...";
+      areaResultado.classList.remove('hidden');
+
+      try {
+        // Registrar consulta na Auditoria (Anti-Metagaming)
+        await db.collection("auditoria").add({
+          acao: "CONSULTA",
+          alvo: termo,
+          agente: "DPF-001",
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Tenta buscar por CPF
+        let docSnap = await db.collection("cidadaos").doc(termo).get();
+
+        if (docSnap.exists) {
+          const data = docSnap.data();
+          conteudoResultado.innerHTML = `
+            <div class="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded border border-slate-800">
+              <div>
+                <p class="text-xs text-slate-500">Nome Completo</p>
+                <p class="text-sm font-bold text-slate-200">${data.nome}</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500">CPF</p>
+                <p class="text-sm font-mono text-amber-500">${data.cpf}</p>
+              </div>
+              <div class="col-span-2">
+                <p class="text-xs text-slate-500">Situação Jurídica</p>
+                <span class="inline-block mt-1 px-2 py-0.5 rounded text-xs font-bold ${
+                  data.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                }">
+                  ${data.mandado !== 'NENHUM' ? 'MANDADO ATIVO: ' + data.mandado : 'SEM RESTRIÇÕES'}
+                </span>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        // Tenta buscar por Placa
+        docSnap = await db.collection("veiculos").doc(termo.toUpperCase()).get();
+
+        if (docSnap.exists) {
+          const data = docSnap.data();
+          conteudoResultado.innerHTML = `
+            <div class="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded border border-slate-800">
+              <div>
+                <p class="text-xs text-slate-500">Placa / Prefixo</p>
+                <p class="text-sm font-mono font-bold text-amber-500">${data.placa}</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500">Modelo</p>
+                <p class="text-sm font-bold text-slate-200">${data.modelo}</p>
+              </div>
+              <div class="col-span-2">
+                <p class="text-xs text-slate-500">Proprietário (CPF)</p>
+                <p class="text-sm font-mono text-slate-300">${data.proprietario || 'Não vinculado'}</p>
+              </div>
+            </div>
+          `;
+          return;
+        }
+
+        conteudoResultado.innerHTML = `<span class="text-red-400">Nenhum registro encontrado para "${termo}".</span>`;
+
+      } catch (err) {
+        conteudoResultado.innerHTML = `<span class="text-red-400">Erro na consulta: ${err.message}</span>`;
+      }
+    }
+
+    // 6. Carregar Registros Recentes em Tempo Real
+    function carregarRecentes() {
+      const tabela = document.getElementById('tabela-recentes');
+
+      db.collection("cidadaos").limit(5).onSnapshot((snapshot) => {
+        if (snapshot.empty) {
+          tabela.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhum cidadão registrado ainda. Clique em "+ Novo Cadastro".</td></tr>`;
+          return;
+        }
+
+        tabela.innerHTML = "";
+        snapshot.forEach((doc) => {
+          const c = doc.data();
+          tabela.innerHTML += `
+            <tr class="hover:bg-slate-950/40 transition">
+              <td class="p-3 text-amber-500 font-bold">${c.cpf}</td>
+              <td class="p-3 font-sans text-slate-200">${c.nome}</td>
+              <td class="p-3 text-slate-400 font-sans">Cidadão</td>
+              <td class="p-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                  c.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-slate-800 text-slate-400'
+                }">
+                  ${c.mandado !== 'NENHUM' ? 'COM MANDADO' : 'REGULAR'}
+                </span>
+              </td>
+              <td class="p-3 text-right">
+                <button onclick="document.getElementById('input-busca').value='${c.cpf}'; executarConsulta();" class="text-amber-500 hover:underline text-[11px] font-sans">Consultar</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+    }
+
+    // Inicialização
+    carregarRecentes();
+  </script>
+</body>
+</html>
