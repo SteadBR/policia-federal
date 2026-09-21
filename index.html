@@ -51,7 +51,6 @@
         <p class="text-xs text-amber-500 font-semibold tracking-wide">Departamento de Polícia Federal</p>
       </div>
 
-      <!-- Alerta Dinâmico -->
       <div id="login-alerta" class="hidden mb-4 p-3 rounded text-xs font-medium"></div>
 
       <!-- Formulário: Entrar (ID + Senha) -->
@@ -434,6 +433,46 @@
     </div>
   </div>
 
+  <!-- Modal de Edição de Cidadão (Nome, Vulgo, Mandados e Imagem) -->
+  <div id="modal-editar-cidadao" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Editar Ficha Policial</h3>
+        <button onclick="fecharModalEdicaoCidadao()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <input type="hidden" id="edit-cid-passaporte" />
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-400 mb-1">Nome Completo</label>
+          <input id="edit-cid-nome" type="text" placeholder="Nome Completo..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Apelido / Vulgo</label>
+          <input id="edit-cid-apelido" type="text" placeholder="Apelido / Vulgo..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">URL da Imagem / Foto</label>
+          <input id="edit-cid-foto" type="text" placeholder="https://..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Situação de Mandados</label>
+          <select id="edit-cid-mandado" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
+            <option value="NENHUM">Sem Mandados Ativos</option>
+            <option value="PRISAO_PREVENTIVA">Mandado de Prisão Preventiva</option>
+            <option value="BUSCA_APREENSAO">Mandado de Busca e Apreensão</option>
+          </select>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button onclick="fecharModalEdicaoCidadao()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded font-bold uppercase transition">Cancelar</button>
+          <button onclick="salvarEdicaoCidadao()" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded font-bold uppercase transition">Atualizar Ficha</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Cadastro Unificado (Cidadãos, Veículos e Bens) -->
   <div id="modal-cadastro" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl">
@@ -467,12 +506,20 @@
             <input id="cad-cid-apelido" type="text" placeholder="Ex: Betão da Leste / Sombra" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
           </div>
           <div>
+            <label class="block text-slate-400 mb-1">URL da Foto / Imagem <span class="text-slate-500 text-[10px]">(Opcional)</span></label>
+            <input id="cad-cid-foto" type="text" placeholder="https://... (Deixe vazio para usar silhueta padrão)" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+          <div>
             <label class="block text-slate-400 mb-1">Situação de Mandados</label>
             <select id="cad-cid-mandado" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
               <option value="NENHUM">Sem Mandados Ativos</option>
               <option value="PRISAO_PREVENTIVA">Mandado de Prisão Preventiva</option>
               <option value="BUSCA_APREENSAO">Mandado de Busca e Apreensão</option>
             </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Primeiro Registro / Histórico Inicial <span class="text-slate-500 text-[10px]">(Opcional)</span></label>
+            <input id="cad-cid-registro-inicial" type="text" placeholder="Ex: Abordagem preventiva na rodovia, sem flagrante." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
@@ -561,6 +608,8 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
+
+    const FOTO_PADRAO = "https://static.vecteezy.com/ti/vetor-gratis/p1/17038404-vista-frontal-da-silhueta-do-suspeito-silhueta-de-homem-anonimo-com-ponto-de-interrogacao-no-fundo-do-registro-criminal-ou-serial-policial-ilustracaoial-vetor.jpg";
 
     let usuarioLogado = null;
     let cadastrandoNovo = false;
@@ -1042,7 +1091,96 @@
       }
     }
 
-    // --- SALVAR REGISTROS (CIDADÃO / VEÍCULO / BEM) ---
+    // --- CONTROLE DO MODAL DE EDIÇÃO DO CIDADÃO ---
+    function abrirModalEdicaoCidadao(passaporte, nome, apelido, mandado, foto) {
+      document.getElementById('edit-cid-passaporte').value = passaporte;
+      document.getElementById('edit-cid-nome').value = decodeURIComponent(nome);
+      document.getElementById('edit-cid-apelido').value = decodeURIComponent(apelido);
+      document.getElementById('edit-cid-foto').value = decodeURIComponent(foto);
+      document.getElementById('edit-cid-mandado').value = mandado;
+
+      document.getElementById('modal-editar-cidadao').classList.remove('hidden');
+      document.getElementById('modal-editar-cidadao').classList.add('flex');
+    }
+
+    function fecharModalEdicaoCidadao() {
+      document.getElementById('modal-editar-cidadao').classList.add('hidden');
+      document.getElementById('modal-editar-cidadao').classList.remove('flex');
+    }
+
+    async function salvarEdicaoCidadao() {
+      const passaporte = document.getElementById('edit-cid-passaporte').value;
+      const nome = document.getElementById('edit-cid-nome').value.trim();
+      const apelido = document.getElementById('edit-cid-apelido').value.trim();
+      const foto = document.getElementById('edit-cid-foto').value.trim();
+      const mandado = document.getElementById('edit-cid-mandado').value;
+
+      if (!nome && !apelido) {
+        return alert('A ficha precisa ter pelo menos um Nome Completo ou Apelido/Vulgo.');
+      }
+
+      try {
+        await db.collection("cidadaos").doc(passaporte).update({
+          nome: nome,
+          apelido: apelido,
+          fotoUrl: foto || FOTO_PADRAO,
+          mandado: mandado,
+          atualizadoPor: usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "DPF",
+          atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        await db.collection("auditoria").add({
+          acao: "EDICAO_FICHA_CIDADAO",
+          alvo: `Passaporte: ${passaporte} | Nome: ${nome} | Vulgo: ${apelido}`,
+          agente: usuarioLogado ? `${usuarioLogado.nome} (ID: ${usuarioLogado.passaporte})` : "DPF",
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`Ficha do Passaporte ${passaporte} atualizada com sucesso!`);
+        fecharModalEdicaoCidadao();
+        document.getElementById('input-busca').value = passaporte;
+        executarConsulta();
+      } catch (err) {
+        alert("Erro ao atualizar ficha: " + traduzirErro(err));
+      }
+    }
+
+    // --- ADICIONAR NOVO REGISTRO / OCORRÊNCIA NA FICHA DO CIDADÃO ---
+    async function adicionarRegistroFicha(passaporte) {
+      const input = document.getElementById(`novo-registro-txt-${passaporte}`);
+      const texto = input.value.trim();
+
+      if (!texto) return alert('Digite o relato da ocorrência ou registro antes de adicionar.');
+
+      const agenteDesc = usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "DPF";
+
+      try {
+        const novoItemHistorico = {
+          data: new Date().toISOString(),
+          texto: texto,
+          agente: agenteDesc
+        };
+
+        await db.collection("cidadaos").doc(passaporte).update({
+          historico: firebase.firestore.FieldValue.arrayUnion(novoItemHistorico)
+        });
+
+        await db.collection("auditoria").add({
+          acao: "NOVO_REGISTRO_FICHA",
+          alvo: `Passaporte ${passaporte}: ${texto.substring(0, 40)}...`,
+          agente: agenteDesc,
+          data: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert("Registro adicionado com sucesso à ficha policial!");
+        document.getElementById('input-busca').value = passaporte;
+        executarConsulta();
+      } catch (err) {
+        alert("Erro ao anexar registro: " + traduzirErro(err));
+      }
+    }
+
+    // --- SALVAR REGISTROS (COM BLOQUEIO DE DUPLICIDADE NO CIDADÃO) ---
     async function salvarRegistro() {
       const tipo = document.getElementById('cad-tipo').value;
       const agenteId = usuarioLogado ? `${usuarioLogado.nome} (ID: ${usuarioLogado.passaporte})` : "DPF";
@@ -1052,16 +1190,39 @@
           const passaporte = document.getElementById('cad-cid-passaporte').value.trim();
           const nome = document.getElementById('cad-cid-nome').value.trim();
           const apelido = document.getElementById('cad-cid-apelido').value.trim();
+          const foto = document.getElementById('cad-cid-foto').value.trim();
           const mandado = document.getElementById('cad-cid-mandado').value;
+          const regInicial = document.getElementById('cad-cid-registro-inicial').value.trim();
 
           if (!passaporte) return alert('O campo Passaporte é obrigatório.');
           if (!nome && !apelido) return alert('É obrigatório informar pelo menos o Nome Completo ou o Apelido/Vulgo.');
+
+          // BLOQUEIO DE PASSAPORTE DUPLICADO
+          const docExistente = await db.collection("cidadaos").doc(passaporte).get();
+          if (docExistente.exists) {
+            fecharModalCadastro();
+            alert(`ATENÇÃO: Já existe uma ficha cadastrada para o Passaporte ${passaporte}.\n\nNão é permitido criar uma nova ficha duplicada. A ficha existente foi aberta para você adicionar novos registros ou editá-la.`);
+            document.getElementById('input-busca').value = passaporte;
+            executarConsulta();
+            return;
+          }
+
+          const historicoInicial = [];
+          if (regInicial) {
+            historicoInicial.push({
+              data: new Date().toISOString(),
+              texto: regInicial,
+              agente: agenteId
+            });
+          }
 
           await db.collection("cidadaos").doc(passaporte).set({
             passaporte: passaporte,
             nome: nome || '',
             apelido: apelido || '',
+            fotoUrl: foto || FOTO_PADRAO,
             mandado: mandado,
+            historico: historicoInicial,
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
           });
 
@@ -1075,6 +1236,8 @@
           document.getElementById('cad-cid-passaporte').value = '';
           document.getElementById('cad-cid-nome').value = '';
           document.getElementById('cad-cid-apelido').value = '';
+          document.getElementById('cad-cid-foto').value = '';
+          document.getElementById('cad-cid-registro-inicial').value = '';
 
         } else if (tipo === 'veiculo') {
           const placa = document.getElementById('cad-veic-placa').value.trim().toUpperCase();
@@ -1121,7 +1284,7 @@
             return alert('Preencha todos os campos obrigatórios do bem (Tipo, Localização e Passaporte do Dono).');
           }
 
-          const docRef = await db.collection("bens").add({
+          await db.collection("bens").add({
             tipo: tipoBem,
             localizacao: localizacao,
             proprietario: proprietario,
@@ -1147,7 +1310,7 @@
       }
     }
 
-    // --- CONSULTA UNIFICADA ---
+    // --- CONSULTA UNIFICADA (COM FICHA DETALHADA E HISTÓRICO) ---
     async function executarConsulta() {
       const termo = document.getElementById('input-busca').value.trim();
       const areaResultado = document.getElementById('resultado-pesquisa');
@@ -1183,30 +1346,93 @@
 
         if (docSnap.exists) {
           const data = docSnap.data();
+          const pass = data.passaporte || docSnap.id;
+          const fotoUrl = data.fotoUrl || FOTO_PADRAO;
+          const historico = data.historico || [];
+
+          let historicoHtml = "";
+          if (historico.length === 0) {
+            historicoHtml = `<p class="text-xs text-slate-500 italic py-2">Nenhum registro criminal ou anotação prévia vinculada a esta ficha.</p>`;
+          } else {
+            historicoHtml = historico.map((item, idx) => {
+              const dataFormatada = item.data ? new Date(item.data).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' }) : '-';
+              return `
+                <div class="bg-slate-900 border border-slate-800/80 rounded p-3 text-xs space-y-1">
+                  <div class="flex justify-between text-slate-400 font-mono text-[11px]">
+                    <span class="text-amber-500 font-bold">Ocorrência #${idx + 1}</span>
+                    <span>${dataFormatada} • Agente: ${item.agente || 'DPF'}</span>
+                  </div>
+                  <p class="text-slate-200">${item.texto}</p>
+                </div>
+              `;
+            }).reverse().join('');
+          }
+
           conteudoResultado.innerHTML = `
-            <div class="bg-slate-950 p-5 rounded-lg border border-slate-800 space-y-4">
-              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Ficha de Cidadão</span>
-                <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">Passaporte: ${data.passaporte || docSnap.id}</span>
-              </div>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p class="text-xs text-slate-500 uppercase">Nome Completo</p>
-                  <p class="text-sm font-bold text-slate-200">${data.nome || '<span class="text-slate-600 font-normal">Não informado</span>'}</p>
+            <div class="bg-slate-950 p-6 rounded-lg border border-slate-800 space-y-6">
+              
+              <!-- Topo da Ficha com Foto e Dados Principais -->
+              <div class="flex flex-col md:flex-row gap-6 items-start">
+                
+                <!-- Foto do Suspeito -->
+                <div class="w-36 h-44 rounded-lg overflow-hidden border-2 border-slate-700 bg-slate-900 shrink-0 shadow-lg relative group">
+                  <img src="${fotoUrl}" alt="Foto Suspeito" class="w-full h-full object-cover" onerror="this.src='${FOTO_PADRAO}'" />
+                  <div class="absolute bottom-0 inset-x-0 bg-slate-950/90 text-center py-1 text-[9px] font-bold uppercase tracking-wider text-amber-500">
+                    ID: ${pass}
+                  </div>
                 </div>
-                <div>
-                  <p class="text-xs text-slate-500 uppercase">Apelido / Vulgo</p>
-                  <p class="text-sm font-bold text-amber-400">${data.apelido || '<span class="text-slate-600 font-normal">Não informado</span>'}</p>
+
+                <!-- Informações e Ações -->
+                <div class="flex-1 space-y-4 w-full">
+                  <div class="flex justify-between items-start">
+                    <div>
+                      <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono uppercase font-bold">Ficha de Indivíduo</span>
+                      <h4 class="text-lg font-bold text-slate-100 mt-1">${data.nome || 'Nome Não Informado'}</h4>
+                      <p class="text-xs text-amber-500 font-medium">Vulgo: ${data.apelido || 'Sem Apelido'}</p>
+                    </div>
+
+                    <button onclick="abrirModalEdicaoCidadao('${pass}', '${encodeURIComponent(data.nome || '')}', '${encodeURIComponent(data.apelido || '')}', '${data.mandado || 'NENHUM'}', '${encodeURIComponent(fotoUrl)}')" 
+                      class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-bold uppercase transition">
+                      Editar Ficha
+                    </button>
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/60 p-3 rounded border border-slate-800/80">
+                    <div>
+                      <p class="text-xs text-slate-500 uppercase">Passaporte</p>
+                      <p class="text-sm font-mono font-bold text-amber-400">${pass}</p>
+                    </div>
+                    <div>
+                      <p class="text-xs text-slate-500 uppercase">Situação Judicial</p>
+                      <span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-bold ${
+                        data.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                      }">
+                        ${data.mandado !== 'NENHUM' ? 'MANDADO ATIVO: ' + data.mandado : 'SEM RESTRIÇÕES'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="pt-2 border-t border-slate-800/80">
-                <p class="text-xs text-slate-500 mb-1">Situação de Mandados</p>
-                <span class="inline-block px-2.5 py-1 rounded text-xs font-bold ${
-                  data.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                }">
-                  ${data.mandado !== 'NENHUM' ? 'MANDADO ATIVO: ' + data.mandado : 'SEM RESTRIÇÕES JUDICIAIS'}
-                </span>
+
+              <!-- Histórico da Ficha (Linha do Tempo) -->
+              <div class="border-t border-slate-800 pt-4">
+                <h5 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3">Histórico e Registros da Ficha Policial</h5>
+                
+                <!-- Formulário para Inserir Novo Registro -->
+                <div class="flex gap-2 mb-4">
+                  <input id="novo-registro-txt-${pass}" type="text" placeholder="Adicionar novo registro de ocorrência, infração ou mandado..." 
+                    class="flex-1 bg-slate-900 border border-slate-800 rounded px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500" />
+                  <button onclick="adicionarRegistroFicha('${pass}')" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded text-xs font-bold uppercase tracking-wider transition">
+                    + Anexar Registro
+                  </button>
+                </div>
+
+                <!-- Lista de Registros -->
+                <div class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  ${historicoHtml}
+                </div>
               </div>
+
             </div>
           `;
           return;
@@ -1292,7 +1518,6 @@
     function carregarRecentes() {
       const tabela = document.getElementById('tabela-recentes');
 
-      // Unifica exibição rápida dos cidadãos cadastrados mais recentemente
       db.collection("cidadaos").orderBy("criadoEm", "desc").limit(8).onSnapshot((snapshot) => {
         if (snapshot.empty) {
           tabela.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-600 font-sans">Nenhum registro encontrado. Clique em "+ Novo Cadastro".</td></tr>`;
