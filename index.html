@@ -690,6 +690,23 @@
       return 'Agente Federal';
     }
 
+    // FORMATAÇÃO LIMPA DE MANDADOS (SEM _)
+    function formatarMandado(mandado) {
+      if (!mandado || mandado === 'NENHUM') return 'Sem Restrições Judiciais';
+      if (mandado === 'PRISAO_PREVENTIVA') return 'Mandado de Prisão Preventiva';
+      if (mandado === 'BUSCA_APREENSAO') return 'Mandado de Busca e Apreensão';
+      return mandado.replace(/_/g, ' ');
+    }
+
+    // FORMATAÇÃO LIMPA DE STATUS E CATEGORIAS (SEM _)
+    function formatarStatus(status) {
+      if (!status) return '-';
+      if (status === 'EM_ANDAMENTO') return 'Em Andamento';
+      if (status === 'RELATADO') return 'Relatado ao Judiciário';
+      if (status === 'ARQUIVADO') return 'Arquivado';
+      return status.replace(/_/g, ' ');
+    }
+
     function formatarDataHora(timestamp) {
       if (!timestamp) return '-';
       const data = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
@@ -971,7 +988,7 @@
           tbody.innerHTML += `
             <tr class="hover:bg-slate-950/40">
               <td class="p-3 text-slate-400 font-sans">${formatarDataHora(l.data)}</td>
-              <td class="p-3 font-bold text-amber-500">${l.acao}</td>
+              <td class="p-3 font-bold text-amber-500">${formatarStatus(l.acao)}</td>
               <td class="p-3 font-sans text-slate-300">${l.alvo}</td>
               <td class="p-3 font-sans text-slate-400">${l.agente}</td>
             </tr>
@@ -1212,7 +1229,7 @@
       }
     }
 
-    // --- LIMPAR FICHA POLICIAL (RESTRITO A DELEGADO+) ---
+    // --- LIMPAR FICHA POLICIAL (RESTRITO A DELEGADO+) COM TERMO "ARQUIVADO" ---
     async function limparFichaPolicial(passaporte) {
       if (!ehDelegadoOuSuperior()) {
         return alert("ACESSO NEGADO: Apenas Delegados Federais ou a Direção-Geral possuem autoridade para determinar a limpeza/reabilitação de uma ficha policial.");
@@ -1226,7 +1243,7 @@
       try {
         const registroFichaLimpa = [{
           data: new Date().toISOString(),
-          texto: `[FICHA LIMPA / REABILITAÇÃO JUDICIAL] Todos os antecedentes e registros criminais anteriores foram expurgados por determinação de autoridade policial. Motivo/Despacho: "${motivo}".`,
+          texto: `[FICHA LIMPA / REABILITAÇÃO JUDICIAL] Todos os antecedentes e registros criminais anteriores foram arquivados por determinação de autoridade policial competente. Motivo/Despacho: "${motivo}".`,
           agente: autoridade
         }];
 
@@ -1364,7 +1381,7 @@
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
                   ipl.status === 'EM_ANDAMENTO' ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-slate-800 text-slate-400'
                 }">
-                  ${ipl.status}
+                  ${formatarStatus(ipl.status)}
                 </span>
               </td>
               <td class="p-3 text-right">
@@ -1559,7 +1576,7 @@
       }
     }
 
-    // --- CONSULTA UNIFICADA (COM IPLs VINCULADOS E OPÇÃO LIMPAR FICHA) ---
+    // --- CONSULTA UNIFICADA (COM FORMATAÇÃO LIMPA E TERMO ARQUIVADO) ---
     async function executarConsulta() {
       const termo = document.getElementById('input-busca').value.trim();
       const areaResultado = document.getElementById('resultado-pesquisa');
@@ -1599,7 +1616,7 @@
           const fotoUrl = data.fotoUrl || FOTO_PADRAO;
           const historico = data.historico || [];
 
-          // Consulta IPLs em aberto onde este cidadão é suspeito/investigado
+          // Consulta IPLs em aberto onde este cidadão é investigado
           let iplsHtml = `<p class="text-xs text-slate-500 italic py-1">Nenhum inquérito policial (IPL) instaurado para este passaporte.</p>`;
           try {
             const snapIpls = await db.collection("inqueritos").where("suspeitos", "array-contains", pass).get();
@@ -1611,7 +1628,7 @@
                     <div>
                       <span class="text-amber-500 font-mono font-bold text-xs">${i.protocolo}</span>
                       <p class="text-xs font-bold text-slate-200">${i.titulo}</p>
-                      <p class="text-[10px] text-slate-400">Titular: ${i.delegado} • Status: <span class="text-amber-400">${i.status}</span></p>
+                      <p class="text-[10px] text-slate-400">Titular: ${i.delegado} • Status: <span class="text-amber-400">${formatarStatus(i.status)}</span></p>
                     </div>
                     <button onclick="visualizarIPL('${i.protocolo}')" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-1 rounded text-xs font-bold uppercase transition">
                       Acessar IPL
@@ -1688,16 +1705,16 @@
                     <div>
                       <p class="text-xs text-slate-500 uppercase">Situação Judicial</p>
                       <span class="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-bold ${
-                        data.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                        data.mandado && data.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
                       }">
-                        ${data.mandado !== 'NENHUM' ? 'MANDADO ATIVO: ' + data.mandado : 'SEM RESTRIÇÕES'}
+                        ${formatarMandado(data.mandado)}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Inquéritos Policiais (IPLs) em Aberto -->
+              <!-- Inquéritos Policiais (IPLs) Vinculados -->
               <div class="border-t border-slate-800 pt-4">
                 <div class="flex justify-between items-center mb-3">
                   <h5 class="text-xs font-bold uppercase tracking-wider text-amber-500">Inquéritos Policiais Eletrônicos (IPL) Vinculados</h5>
@@ -1748,7 +1765,7 @@
                 </div>
                 <div>
                   <p class="text-xs text-slate-500 uppercase">Tipo</p>
-                  <p class="text-sm font-bold uppercase text-slate-300">${v.tipo}</p>
+                  <p class="text-sm font-bold capitalize text-slate-300">${formatarStatus(v.tipo)}</p>
                 </div>
                 <div>
                   <p class="text-xs text-slate-500 uppercase">Cor</p>
@@ -1778,7 +1795,7 @@
             <div class="bg-slate-950 p-5 rounded-lg border border-slate-800 space-y-4">
               <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                 <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Registro Patrimonial (Bem / Imóvel)</span>
-                <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-sans font-bold">${b.tipo}</span>
+                <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-sans font-bold">${formatarStatus(b.tipo)}</span>
               </div>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -1819,6 +1836,7 @@
         tabela.innerHTML = "";
         snapshot.forEach((doc) => {
           const c = doc.data();
+          const temMandado = c.mandado && c.mandado !== 'NENHUM';
           tabela.innerHTML += `
             <tr class="hover:bg-slate-950/40 transition">
               <td class="p-3 text-amber-500 font-bold">${c.passaporte || doc.id}</td>
@@ -1827,9 +1845,9 @@
               <td class="p-3 text-slate-400 font-sans">Cidadão</td>
               <td class="p-3">
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
-                  c.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-slate-800 text-slate-400'
+                  temMandado ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-slate-800 text-slate-400'
                 }">
-                  ${c.mandado !== 'NENHUM' ? 'COM MANDADO' : 'REGULAR'}
+                  ${formatarMandado(c.mandado)}
                 </span>
               </td>
               <td class="p-3 text-right">
