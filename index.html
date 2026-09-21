@@ -900,6 +900,36 @@
     let cadastrandoNovo = false;
     let sessaoRegistrada = false;
 
+    // Cache auxiliar para buscar nomes e apelidos instantaneamente
+    const cacheCidadaos = {};
+    const cacheUsuarios = {};
+
+    async function buscarDadosCidadao(passaporte) {
+      if (cacheCidadaos[passaporte]) return cacheCidadaos[passaporte];
+      try {
+        const doc = await db.collection("cidadaos").doc(passaporte).get();
+        if (doc.exists) {
+          const dados = doc.data();
+          cacheCidadaos[passaporte] = dados;
+          return dados;
+        }
+      } catch (e) { console.warn(e); }
+      return null;
+    }
+
+    async function buscarDadosUsuario(passaporte) {
+      if (cacheUsuarios[passaporte]) return cacheUsuarios[passaporte];
+      try {
+        const doc = await db.collection("usuarios").doc(passaporte).get();
+        if (doc.exists) {
+          const dados = doc.data();
+          cacheUsuarios[passaporte] = dados;
+          return dados;
+        }
+      } catch (e) { console.warn(e); }
+      return null;
+    }
+
     function ehDelegadoOuSuperior() {
       if (!usuarioLogado) return false;
       const c = usuarioLogado.cargo;
@@ -1781,7 +1811,7 @@
     }
 
     function carregarInqueritosLista() {
-      db.collection("inqueritos").orderBy("criadoEm", "desc").onSnapshot((snap) => {
+      db.collection("inqueritos").orderBy("criadoEm", "desc").onSnapshot(async (snap) => {
         const tbody = document.getElementById('tabela-ipl-lista');
         if (snap.empty) {
           tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-600 font-sans">Nenhum inquérito policial registrado.</td></tr>`;
@@ -1789,14 +1819,22 @@
         }
 
         tbody.innerHTML = "";
-        snap.forEach((doc) => {
+        for (const doc of snap.docs) {
           const ipl = doc.data();
           const passUser = usuarioLogado ? usuarioLogado.passaporte : "";
           const isEnvolvido = (ipl.investigadores || []).includes(passUser) || ipl.delegado.includes(passUser);
           const isSigiloso = ipl.sigilo === 'SIGILOSO';
           const temPermissao = !isSigiloso || ehDelegadoOuSuperior() || isEnvolvido;
 
-          const suspeitosBadges = (ipl.suspeitos || []).map(s => `<span class="bg-slate-800 text-amber-500 px-1.5 py-0.5 rounded text-[10px] mr-1 font-mono">ID:${s}</span>`).join('');
+          // Monta os badges de alvos com Nome e Vulgo
+          let suspeitosHtmlArr = [];
+          for (let s of (ipl.suspeitos || [])) {
+            const cid = await buscarDadosCidadao(s);
+            const nomeCid = cid ? (cid.nome || 'Desconhecido') : 'Não cadastrado';
+            const vulgoCid = (cid && cid.apelido) ? ` (${cid.apelido})` : '';
+            suspeitosHtmlArr.push(`<span class="bg-slate-800 text-amber-500 px-1.5 py-0.5 rounded text-[10px] mr-1 font-mono">ID:${s} - ${nomeCid}${vulgoCid}</span>`);
+          }
+          const suspeitosBadges = suspeitosHtmlArr.join('<br>') || '-';
           
           let corStatus = "bg-amber-950 text-amber-400 border border-amber-800";
           if (ipl.status === 'ARQUIVADO') corStatus = "bg-slate-800 text-slate-400";
@@ -1811,7 +1849,7 @@
               <td class="p-3 text-amber-500 font-bold font-mono">${ipl.protocolo}</td>
               <td class="p-3 font-sans text-slate-200 font-medium">${ipl.titulo}</td>
               <td class="p-3 font-sans">${badgeSigilo}</td>
-              <td class="p-3 font-sans">${suspeitosBadges || '-'}</td>
+              <td class="p-3 font-sans">${suspeitosBadges}</td>
               <td class="p-3 font-sans text-slate-400">${ipl.delegado}</td>
               <td class="p-3">
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold ${corStatus}">
@@ -1829,7 +1867,7 @@
               </td>
             </tr>
           `;
-        });
+        }
       });
     }
 
@@ -1864,14 +1902,36 @@
         const isArquivado = ipl.status === 'ARQUIVADO';
         const aguardandoAuth = ipl.status === 'AGUARDANDO_AUTORIZACAO';
 
-        let equipeHtml = (ipl.investigadores || []).map(idPolicial => `
-          <span class="bg-slate-800 border border-slate-700 text-amber-400 px-2 py-1 rounded text-[11px] font-mono flex items-center gap-2">
-            ID: ${idPolicial}
-            ${!isArquivado && (ehDelegadoOuSuperior() || usuarioLogado.passaporte === idPolicial) ? `
-              <button onclick="removerInvestigadorIPL('${protocolo}', '${idPolicial}')" class="text-red-400 hover:text-red-200 font-bold">&times;</button>
-            ` : ''}
-          </span>
-        `).join('') || '<span class="text-xs text-slate-500 italic">Nenhum investigador adicional na equipe.</span>';
+        // Renderização da equipe com Nome e Cargo
+        let equipeHtmlArr = [];
+        for (let idPol of (ipl.investigadores || [])) {
+          const userObj = await buscarDadosUsuario(idPol);
+          const nomePol = userObj ? userObj.nome : 'Operador';
+          const cargoPol = userObj ? formatarCargo(userObj.cargo) : '';
+          equipeHtmlArr.push(`
+            <span class="bg-slate-800 border border-slate-700 text-amber-400 px-2 py-1 rounded text-[11px] font-mono flex items-center gap-2">
+              ID: ${idPol} — ${nomePol} (${cargoPol})
+              ${!isArquivado && (ehDelegadoOuSuperior() || passUser === idPol) ? `
+                <button onclick="removerInvestigadorIPL('${protocolo}', '${idPol}')" class="text-red-400 hover:text-red-200 font-bold">&times;</button>
+              ` : ''}
+            </span>
+          `);
+        }
+        let equipeHtml = equipeHtmlArr.join('') || '<span class="text-xs text-slate-500 italic">Nenhum investigador adicional na equipe.</span>';
+
+        // Renderização dos Alvos com Nome e Vulgo
+        let alvosHtmlArr = [];
+        for (let s of (ipl.suspeitos || [])) {
+          const cid = await buscarDadosCidadao(s);
+          const nomeCid = cid ? (cid.nome || 'Desconhecido') : 'Não cadastrado';
+          const vulgoCid = (cid && cid.apelido) ? ` [Vulgo: ${cid.apelido}]` : '';
+          alvosHtmlArr.push(`
+            <button onclick="document.getElementById('input-busca').value='${s}'; trocarModulo('consulta'); executarConsulta();" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono px-2.5 py-1 rounded text-[11px] border border-slate-700 flex items-center gap-1.5">
+              <span>ID: ${s}</span> — <strong class="text-slate-100">${nomeCid}${vulgoCid}</strong> (Consultar Ficha)
+            </button>
+          `);
+        }
+        let alvosVisualHtml = alvosHtmlArr.join('') || '<p class="text-xs text-slate-500 italic">Nenhum alvo cadastrado.</p>';
 
         let provasHtml = (ipl.provas || []).map((p, idx) => {
           const provaJson = encodeURIComponent(JSON.stringify(p));
@@ -1892,14 +1952,20 @@
           `;
         }).join('') || '<p class="text-xs text-slate-500 italic">Nenhuma prova anexada aos autos.</p>';
 
-        let depoimentosHtml = (ipl.depoimentos || []).map((d, idx) => {
+        let depoimentosHtml = [];
+        for (let idx = 0; idx < (ipl.depoimentos || []).length; idx++) {
+          const d = ipl.depoimentos[idx];
+          const cidDep = await buscarDadosCidadao(d.passaporteDepoente);
+          const nomeDep = cidDep ? (cidDep.nome || 'Desconhecido') : 'Não cadastrado';
+          const vulgoDep = (cidDep && cidDep.apelido) ? ` [Vulgo: ${cidDep.apelido}]` : '';
           const depJson = encodeURIComponent(JSON.stringify(d));
-          return `
+
+          depoimentosHtml.push(`
             <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs space-y-1">
               <div class="flex justify-between font-mono text-[11px] text-slate-400">
                 <span class="font-bold text-amber-400">Termo de Oitiva #${idx+1} (${d.tipoDepoente})</span>
                 <div class="flex items-center gap-3">
-                  <span>Testemunha/Envolvido: ID ${d.passaporteDepoente}</span>
+                  <span>Depoente: ID ${d.passaporteDepoente} — ${nomeDep}${vulgoDep}</span>
                   <button onclick="exportarPecaIPLPDF('${protocolo}', 'DEPOIMENTO', '${depJson}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/40 px-2 py-0.5 rounded text-[10px] font-bold uppercase transition">
                     Exportar Peça (PDF)
                   </button>
@@ -1907,26 +1973,36 @@
               </div>
               <p class="text-slate-200 whitespace-pre-wrap">${d.declaracao}</p>
             </div>
-          `;
-        }).join('') || '<p class="text-xs text-slate-500 italic">Nenhum depoimento registrado.</p>';
+          `);
+        }
+        let depHtmlStr = depoimentosHtml.join('') || '<p class="text-xs text-slate-500 italic">Nenhum depoimento registrado.</p>';
 
-        let mandadosHtml = (ipl.mandados || []).map((m, idx) => `
-          <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs flex justify-between items-center">
-            <div>
-              <span class="font-mono font-bold text-amber-400">Mandado #${idx+1}: ${formatarMandado(m.tipo)}</span>
-              <p class="text-slate-300 mt-0.5">Alvo (ID): <span class="font-mono font-bold">${m.alvoPassaporte}</span> • Fundamento: ${m.motivo}</p>
-              <p class="text-[10px] text-slate-400 mt-1">Expedido por: ${m.expedidoPor}</p>
+        let mandadosHtmlArr = [];
+        for (let idx = 0; idx < (ipl.mandados || []).length; idx++) {
+          const m = ipl.mandados[idx];
+          const cidM = await buscarDadosCidadao(m.alvoPassaporte);
+          const nomeM = cidM ? (cidM.nome || 'Desconhecido') : 'Não cadastrado';
+          const vulgoM = (cidM && cidM.apelido) ? ` [Vulgo: ${cidM.apelido}]` : '';
+
+          mandadosHtmlArr.push(`
+            <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs flex justify-between items-center">
+              <div>
+                <span class="font-mono font-bold text-amber-400">Mandado #${idx+1}: ${formatarMandado(m.tipo)}</span>
+                <p class="text-slate-300 mt-0.5">Alvo: <span class="font-mono font-bold">ID ${m.alvoPassaporte} — ${nomeM}${vulgoM}</span> • Fundamento: ${m.motivo}</p>
+                <p class="text-[10px] text-slate-400 mt-1">Expedido por: ${m.expedidoPor}</p>
+              </div>
+              <div>
+                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${m.status === 'ATIVO' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}">
+                  ${m.status}
+                </span>
+                ${m.status === 'ATIVO' && ehDelegadoOuSuperior() && !isArquivado ? `
+                  <button onclick="cumprirMandadoIPL('${protocolo}', '${m.id}')" class="block mt-2 bg-emerald-600 hover:bg-emerald-500 text-black px-2 py-0.5 rounded text-[10px] font-bold uppercase">Cumprir</button>
+                ` : ''}
+              </div>
             </div>
-            <div>
-              <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${m.status === 'ATIVO' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}">
-                ${m.status}
-              </span>
-              ${m.status === 'ATIVO' && ehDelegadoOuSuperior() && !isArquivado ? `
-                <button onclick="cumprirMandadoIPL('${protocolo}', '${m.id}')" class="block mt-2 bg-emerald-600 hover:bg-emerald-500 text-black px-2 py-0.5 rounded text-[10px] font-bold uppercase">Cumprir</button>
-              ` : ''}
-            </div>
-          </div>
-        `).join('') || '<p class="text-xs text-slate-500 italic">Nenhum mandado solicitado ou expedido neste IPL.</p>';
+          `);
+        }
+        let mandadosHtmlStr = mandadosHtmlArr.join('') || '<p class="text-xs text-slate-500 italic">Nenhum mandado solicitado ou expedido neste IPL.</p>';
 
         let historicoIplHtml = (ipl.historicoAndamento || []).map(h => `
           <div class="text-[11px] bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
@@ -1994,11 +2070,7 @@
               <div>
                 <p class="text-slate-500 uppercase text-[11px]">Alvos Investigados</p>
                 <div class="flex flex-wrap gap-1 mt-1">
-                  ${(ipl.suspeitos || []).map(s => `
-                    <button onclick="document.getElementById('input-busca').value='${s}'; trocarModulo('consulta'); executarConsulta();" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono px-2 py-0.5 rounded text-[11px] border border-slate-700">
-                      ID: ${s} (Consultar)
-                    </button>
-                  `).join('')}
+                  ${alvosVisualHtml}
                 </div>
               </div>
             </div>
@@ -2068,7 +2140,7 @@
                   <button onclick="adicionarDepoimentoIPL('${protocolo}')" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">+ Registrar Oitiva</button>
                 </div>
               ` : ''}
-              <div class="space-y-2">${depoimentosHtml}</div>
+              <div class="space-y-2">${depHtmlStr}</div>
             </div>
 
             <!-- Mandados -->
@@ -2088,7 +2160,7 @@
                   <button onclick="solicitarMandadoIPL('${protocolo}')" class="bg-red-600 hover:bg-red-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">Expedir Mandado (Valida Ficha e Vincula IPL)</button>
                 </div>
               ` : ''}
-              <div class="space-y-2">${mandadosHtml}</div>
+              <div class="space-y-2">${mandadosHtmlStr}</div>
             </div>
 
             <!-- Linha do Tempo e Andamento -->
@@ -2104,7 +2176,7 @@
       }
     }
 
-    // --- AÇÕES DO IPL (Com validação de Ficha Cadastrada para Mandados) ---
+    // --- AÇÕES DO IPL ---
     async function adicionarInvestigadorIPL(protocolo) {
       const idPolicial = document.getElementById('ipl-novo-investigador-id').value.trim();
       if (!idPolicial) return alert("Informe o Passaporte do policial.");
@@ -2298,7 +2370,6 @@
       }
     }
 
-    // --- EXPEDIR MANDADO COM VALIDAÇÃO DE FICHA CADASTRADA ---
     async function solicitarMandadoIPL(protocolo) {
       if (!ehDelegadoOuSuperior()) return alert("Apenas Delegados podem expedir mandados judiciais.");
       const tipo = document.getElementById('ipl-mandado-tipo').value;
@@ -2308,7 +2379,6 @@
       if (!alvoPassaporte || !motivo) return alert("Informe o Passaporte do alvo e a fundamentação.");
 
       try {
-        // Validação estrita: Verifica se o cidadão possui ficha cadastrada
         const docCidadao = await db.collection("cidadaos").doc(alvoPassaporte).get();
         if (!docCidadao.exists) {
           return alert(`ERRO DE EXPEDIÇÃO: O Passaporte ID "${alvoPassaporte}" não possui ficha de cidadão cadastrada no sistema.\n\nÉ proibido expedir mandados para indivíduos sem cadastro prévio.`);
@@ -2390,7 +2460,7 @@
     }
 
     // --- EXPORTAR PEÇA ISOLADA (PROVA OU DEPOIMENTO) EM PDF ---
-    function exportarPecaIPLPDF(protocolo, tipoPeca, pecaEncoded) {
+    async function exportarPecaIPLPDF(protocolo, tipoPeca, pecaEncoded) {
       const peca = JSON.parse(decodeURIComponent(pecaEncoded));
       const dataHoraAtual = new Date().toLocaleString('pt-BR');
       const nomeAutoridade = usuarioLogado ? (usuarioLogado.nome || 'Operador Federal') : 'Operador Federal';
@@ -2416,10 +2486,14 @@
           </div>
         `;
       } else {
+        const cidDep = await buscarDadosCidadao(peca.passaporteDepoente);
+        const nomeDep = cidDep ? (cidDep.nome || 'Desconhecido') : 'Não cadastrado';
+        const vulgoDep = (cidDep && cidDep.apelido) ? ` [Vulgo: ${cidDep.apelido}]` : '';
+
         conteudoPecaHtml = `
           <h3 style="font-size: 13px; text-transform: uppercase; color: #b45309; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; margin-bottom: 10px;">Termo de Oitiva e Declaração (${peca.tipoDepoente})</h3>
           <p style="font-size: 11px; margin: 4px 0;"><strong>Inquérito Relacionado:</strong> Protocolo ${protocolo}</p>
-          <p style="font-size: 11px; margin: 4px 0;"><strong>Passaporte do Depoente (ID):</strong> ${peca.passaporteDepoente}</p>
+          <p style="font-size: 11px; margin: 4px 0;"><strong>Depoente:</strong> ID ${peca.passaporteDepoente} — ${nomeDep}${vulgoDep}</p>
           <p style="font-size: 11px; margin: 4px 0;"><strong>Registrado por:</strong> ${peca.registradoPor} em ${new Date(peca.data).toLocaleString('pt-BR')}</p>
           <div style="margin-top: 10px; padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 4px;">
             <p style="font-size: 10.5px; margin: 0; white-space: pre-wrap;"><strong>Declaração:</strong> ${peca.declaracao}</p>
@@ -2465,6 +2539,14 @@
         if (!doc.exists) return alert("Inquérito não encontrado.");
         const ipl = doc.data();
 
+        let suspeitosPdfArr = [];
+        for (let s of (ipl.suspeitos || [])) {
+          const cid = await buscarDadosCidadao(s);
+          const nomeCid = cid ? (cid.nome || 'Desconhecido') : 'Não cadastrado';
+          const vulgoCid = (cid && cid.apelido) ? ` [Vulgo: ${cid.apelido}]` : '';
+          suspeitosPdfArr.push(`ID ${s} — ${nomeCid}${vulgoCid}`);
+        }
+
         const dataHoraAtual = new Date().toLocaleString('pt-BR');
         const nomeAutoridade = usuarioLogado ? (usuarioLogado.nome || 'Operador Federal') : 'Operador Federal';
         const cargoAutoridade = usuarioLogado ? formatarCargo(usuarioLogado.cargo) : 'Agente Federal';
@@ -2491,7 +2573,7 @@
               <p><strong>Nível de Sigilo:</strong> ${ipl.sigilo} (${ipl.justificativaSigilo})</p>
               <p><strong>Autoridade Presidente:</strong> ${ipl.delegado}</p>
               <p><strong>Status Atual:</strong> ${formatarStatus(ipl.status)}</p>
-              <p><strong>Investigados (IDs):</strong> ${(ipl.suspeitos || []).join(', ')}</p>
+              <p><strong>Investigados:</strong> ${suspeitosPdfArr.join('; ') || '-'}</p>
             </div>
 
             <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; padding: 10px; border-radius: 4px;">
