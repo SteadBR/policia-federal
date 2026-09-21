@@ -215,14 +215,14 @@
       <section id="modulo-consulta" class="space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <div class="flex justify-between items-center mb-3">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Consulta Unificada (Cidadãos & Veículos)</h2>
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Consulta Unificada (Cidadãos, Veículos & Bens)</h2>
             <button onclick="abrirModalCadastro()" class="bg-amber-600 hover:bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded transition uppercase">
               + Novo Cadastro
             </button>
           </div>
           
           <div class="flex gap-3">
-            <input id="input-busca" type="text" placeholder="Digite Passaporte (ID), Nome, Apelido/Vulgo ou Placa..." 
+            <input id="input-busca" type="text" placeholder="Digite Passaporte (ID), Nome, Vulgo, Placa ou Endereço do Bem..." 
               class="flex-1 bg-slate-950 border border-slate-800 rounded px-4 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500 placeholder:text-slate-600" />
             <button onclick="executarConsulta()" class="bg-slate-800 hover:bg-slate-700 text-slate-100 px-6 py-2 rounded text-xs font-bold uppercase tracking-wider border border-slate-700 transition">
               Consultar
@@ -243,10 +243,10 @@
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
                 <tr>
-                  <th class="p-3">Passaporte / Placa</th>
-                  <th class="p-3">Nome Completo</th>
-                  <th class="p-3">Apelido / Vulgo</th>
-                  <th class="p-3">Tipo</th>
+                  <th class="p-3">Identificador</th>
+                  <th class="p-3">Título / Nome</th>
+                  <th class="p-3">Detalhes / Vulgo</th>
+                  <th class="p-3">Categoria</th>
                   <th class="p-3">Situação</th>
                   <th class="p-3 text-right">Ação</th>
                 </tr>
@@ -271,8 +271,8 @@
 
       <section id="modulo-operacoes" class="hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
-          <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Operações e Apreensões</h2>
-          <p class="text-xs text-slate-400 mt-2">Termos de apreensão, drogas, armas e cadeia de custódia de bens.</p>
+          <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Operações e Bens</h2>
+          <p class="text-xs text-slate-400 mt-2">Termos de apreensão, drogas, armas e inventário de bens sob custódia.</p>
         </div>
       </section>
 
@@ -434,11 +434,11 @@
     </div>
   </div>
 
-  <!-- Modal de Cadastro Rápido (Cidadãos / Veículos) -->
+  <!-- Modal de Cadastro Unificado (Cidadãos, Veículos e Bens) -->
   <div id="modal-cadastro" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Cadastrar no Banco de Dados</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Cadastrar Registro Policial</h3>
         <button onclick="fecharModalCadastro()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
@@ -447,7 +447,8 @@
           <label class="block text-slate-400 mb-1">Tipo de Registro</label>
           <select id="cad-tipo" onchange="alternarCamposCadastro()" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
             <option value="cidadao">Cidadão (Ficha de Pessoa)</option>
-            <option value="veiculo">Veículo / Aeronave / Embarcação</option>
+            <option value="veiculo">Veículo (Automóvel / Aéreo / Náutico)</option>
+            <option value="bem">Bem / Propriedade (Imóvel / Estabelecimento)</option>
           </select>
         </div>
 
@@ -478,16 +479,63 @@
         <!-- Campos Veículo -->
         <div id="campos-veiculo" class="space-y-3 hidden">
           <div>
-            <label class="block text-slate-400 mb-1">Placa / Prefixo <span class="text-amber-500 font-bold">*</span></label>
-            <input id="cad-placa" type="text" placeholder="Ex: ABC1D23" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 uppercase" />
+            <label class="block text-slate-400 mb-1">Placa <span class="text-amber-500 font-bold">*</span></label>
+            <input id="cad-veic-placa" type="text" placeholder="Ex: ABC1D23" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 uppercase font-mono" />
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-slate-400 mb-1">Modelo <span class="text-amber-500 font-bold">*</span></label>
+              <input id="cad-veic-modelo" type="text" placeholder="Ex: Hilux / R1200" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Cor <span class="text-amber-500 font-bold">*</span></label>
+              <input id="cad-veic-cor" type="text" placeholder="Ex: Preto / Prata" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-slate-400 mb-1">Tipo <span class="text-amber-500 font-bold">*</span></label>
+              <select id="cad-veic-tipo" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
+                <option value="carro">Carro</option>
+                <option value="moto">Moto</option>
+                <option value="caminhao">Caminhão</option>
+                <option value="helicoptero">Helicóptero</option>
+                <option value="aviao">Avião</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Passaporte Proprietário <span class="text-amber-500 font-bold">*</span></label>
+              <input id="cad-veic-proprietario" type="text" placeholder="Passaporte (ID)..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
+            </div>
           </div>
           <div>
-            <label class="block text-slate-400 mb-1">Modelo / Descrição <span class="text-amber-500 font-bold">*</span></label>
-            <input id="cad-modelo" type="text" placeholder="Ex: Helicóptero Bell 206 / Hilux SW4" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+            <label class="block text-slate-400 mb-1">Descrição / Notas <span class="text-slate-500 text-[10px]">(Opcional)</span></label>
+            <input id="cad-veic-descricao" type="text" placeholder="Ex: Blindagem nível 3, insulfilm escuro, amassado traseiro..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+        </div>
+
+        <!-- Campos Bens -->
+        <div id="campos-bem" class="space-y-3 hidden">
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-slate-400 mb-1">Tipo de Imóvel <span class="text-amber-500 font-bold">*</span></label>
+              <select id="cad-bem-tipo" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
+                <option value="Residencial">Residencial</option>
+                <option value="Empresarial">Empresarial</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1">Passaporte Proprietário <span class="text-amber-500 font-bold">*</span></label>
+              <input id="cad-bem-proprietario" type="text" placeholder="Passaporte (ID)..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
+            </div>
           </div>
           <div>
-            <label class="block text-slate-400 mb-1">Passaporte do Proprietário</label>
-            <input id="cad-proprietario" type="text" placeholder="Passaporte (ID) do dono..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+            <label class="block text-slate-400 mb-1">Localização / Endereço <span class="text-amber-500 font-bold">*</span></label>
+            <input id="cad-bem-localizacao" type="text" placeholder="Ex: Rua das Flores, 45 - Vinewood / Galpão 3 Doca Sul" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Descrição do Bem <span class="text-slate-500 text-[10px]">(Opcional)</span></label>
+            <input id="cad-bem-descricao" type="text" placeholder="Ex: Mansão com heliponto / Fachada de oficina mecânica..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
           </div>
         </div>
 
@@ -968,7 +1016,7 @@
       btnAtivo.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition bg-amber-600/10 text-amber-500 border-l-2 border-amber-500";
     }
 
-    // --- MODAL DE CADASTRO (CIDADÃO / VEÍCULO) ---
+    // --- CONTROLE DO MODAL DE CADASTRO ---
     function abrirModalCadastro() {
       document.getElementById('modal-cadastro').classList.remove('hidden');
       document.getElementById('modal-cadastro').classList.add('flex');
@@ -981,16 +1029,20 @@
 
     function alternarCamposCadastro() {
       const tipo = document.getElementById('cad-tipo').value;
+      document.getElementById('campos-cidadao').classList.add('hidden');
+      document.getElementById('campos-veiculo').classList.add('hidden');
+      document.getElementById('campos-bem').classList.add('hidden');
+
       if (tipo === 'cidadao') {
         document.getElementById('campos-cidadao').classList.remove('hidden');
-        document.getElementById('campos-veiculo').classList.add('hidden');
-      } else {
-        document.getElementById('campos-cidadao').classList.add('hidden');
+      } else if (tipo === 'veiculo') {
         document.getElementById('campos-veiculo').classList.remove('hidden');
+      } else if (tipo === 'bem') {
+        document.getElementById('campos-bem').classList.remove('hidden');
       }
     }
 
-    // --- SALVAR REGISTRO (FICHA DE PESSOA COM PASSAPORTE + NOME OU APELIDO) ---
+    // --- SALVAR REGISTROS (CIDADÃO / VEÍCULO / BEM) ---
     async function salvarRegistro() {
       const tipo = document.getElementById('cad-tipo').value;
       const agenteId = usuarioLogado ? `${usuarioLogado.nome} (ID: ${usuarioLogado.passaporte})` : "DPF";
@@ -1002,13 +1054,8 @@
           const apelido = document.getElementById('cad-cid-apelido').value.trim();
           const mandado = document.getElementById('cad-cid-mandado').value;
 
-          if (!passaporte) {
-            return alert('O campo Passaporte é obrigatório.');
-          }
-
-          if (!nome && !apelido) {
-            return alert('É obrigatório informar pelo menos o Nome Completo ou o Apelido/Vulgo.');
-          }
+          if (!passaporte) return alert('O campo Passaporte é obrigatório.');
+          if (!nome && !apelido) return alert('É obrigatório informar pelo menos o Nome Completo ou o Apelido/Vulgo.');
 
           await db.collection("cidadaos").doc(passaporte).set({
             passaporte: passaporte,
@@ -1025,35 +1072,73 @@
             data: firebase.firestore.FieldValue.serverTimestamp()
           });
 
-          // Limpa campos do modal
           document.getElementById('cad-cid-passaporte').value = '';
           document.getElementById('cad-cid-nome').value = '';
           document.getElementById('cad-cid-apelido').value = '';
 
-        } else {
-          const placa = document.getElementById('cad-placa').value.trim().toUpperCase();
-          const modelo = document.getElementById('cad-modelo').value.trim();
-          const proprietario = document.getElementById('cad-proprietario').value.trim();
+        } else if (tipo === 'veiculo') {
+          const placa = document.getElementById('cad-veic-placa').value.trim().toUpperCase();
+          const modelo = document.getElementById('cad-veic-modelo').value.trim();
+          const cor = document.getElementById('cad-veic-cor').value.trim();
+          const tipoVeic = document.getElementById('cad-veic-tipo').value;
+          const proprietario = document.getElementById('cad-veic-proprietario').value.trim();
+          const descricao = document.getElementById('cad-veic-descricao').value.trim();
 
-          if (!placa || !modelo) return alert('Preencha Placa e Modelo.');
+          if (!placa || !modelo || !cor || !tipoVeic || !proprietario) {
+            return alert('Preencha todos os campos obrigatórios do veículo (Placa, Modelo, Cor, Tipo e Passaporte do Dono).');
+          }
 
           await db.collection("veiculos").doc(placa).set({
-            placa,
-            modelo,
-            proprietario,
+            placa: placa,
+            modelo: modelo,
+            cor: cor,
+            tipo: tipoVeic,
+            proprietario: proprietario,
+            descricao: descricao || '',
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
           });
 
           await db.collection("auditoria").add({
             acao: "CADASTRO_VEICULO",
-            alvo: placa,
+            alvo: `Placa: ${placa} | Modelo: ${modelo} | Proprietário: ${proprietario}`,
             agente: agenteId,
             data: firebase.firestore.FieldValue.serverTimestamp()
           });
 
-          document.getElementById('cad-placa').value = '';
-          document.getElementById('cad-modelo').value = '';
-          document.getElementById('cad-proprietario').value = '';
+          document.getElementById('cad-veic-placa').value = '';
+          document.getElementById('cad-veic-modelo').value = '';
+          document.getElementById('cad-veic-cor').value = '';
+          document.getElementById('cad-veic-proprietario').value = '';
+          document.getElementById('cad-veic-descricao').value = '';
+
+        } else if (tipo === 'bem') {
+          const tipoBem = document.getElementById('cad-bem-tipo').value;
+          const localizacao = document.getElementById('cad-bem-localizacao').value.trim();
+          const proprietario = document.getElementById('cad-bem-proprietario').value.trim();
+          const descricao = document.getElementById('cad-bem-descricao').value.trim();
+
+          if (!tipoBem || !localizacao || !proprietario) {
+            return alert('Preencha todos os campos obrigatórios do bem (Tipo, Localização e Passaporte do Dono).');
+          }
+
+          const docRef = await db.collection("bens").add({
+            tipo: tipoBem,
+            localizacao: localizacao,
+            proprietario: proprietario,
+            descricao: descricao || '',
+            criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          await db.collection("auditoria").add({
+            acao: "CADASTRO_BEM",
+            alvo: `Bem: ${tipoBem} em ${localizacao} | Proprietário: ${proprietario}`,
+            agente: agenteId,
+            data: firebase.firestore.FieldValue.serverTimestamp()
+          });
+
+          document.getElementById('cad-bem-localizacao').value = '';
+          document.getElementById('cad-bem-proprietario').value = '';
+          document.getElementById('cad-bem-descricao').value = '';
         }
 
         fecharModalCadastro();
@@ -1062,7 +1147,7 @@
       }
     }
 
-    // --- CONSULTA UNIFICADA (PASSAPORTE, NOME, APELIDO OU PLACA) ---
+    // --- CONSULTA UNIFICADA ---
     async function executarConsulta() {
       const termo = document.getElementById('input-busca').value.trim();
       const areaResultado = document.getElementById('resultado-pesquisa');
@@ -1070,7 +1155,7 @@
 
       if (!termo) return;
 
-      conteudoResultado.innerHTML = "A pesquisar nos arquivos federais...";
+      conteudoResultado.innerHTML = "A pesquisar nos arquivos e cadastros federais...";
       areaResultado.classList.remove('hidden');
 
       try {
@@ -1081,74 +1166,115 @@
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 1. Busca Cidadão por Passaporte (ID exato)
+        // 1. Cidadão por Passaporte
         let docSnap = await db.collection("cidadaos").doc(termo).get();
 
-        // 2. Se não achou por ID, busca por Nome Completo
+        // 2. Cidadão por Nome
         if (!docSnap.exists) {
           const qNome = await db.collection("cidadaos").where("nome", "==", termo).limit(1).get();
           if (!qNome.empty) docSnap = qNome.docs[0];
         }
 
-        // 3. Se não achou por Nome, busca por Apelido/Vulgo
+        // 3. Cidadão por Apelido/Vulgo
         if (!docSnap.exists) {
           const qApelido = await db.collection("cidadaos").where("apelido", "==", termo).limit(1).get();
           if (!qApelido.empty) docSnap = qApelido.docs[0];
         }
 
-        // Se encontrou a ficha do Cidadão
         if (docSnap.exists) {
           const data = docSnap.data();
           conteudoResultado.innerHTML = `
             <div class="bg-slate-950 p-5 rounded-lg border border-slate-800 space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Ficha de Cidadão</span>
+                <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">Passaporte: ${data.passaporte || docSnap.id}</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p class="text-xs text-slate-500 uppercase tracking-wider">Passaporte (ID)</p>
-                  <p class="text-base font-mono font-bold text-amber-500">${data.passaporte || docSnap.id}</p>
-                </div>
-                <div>
-                  <p class="text-xs text-slate-500 uppercase tracking-wider">Nome Completo</p>
+                  <p class="text-xs text-slate-500 uppercase">Nome Completo</p>
                   <p class="text-sm font-bold text-slate-200">${data.nome || '<span class="text-slate-600 font-normal">Não informado</span>'}</p>
                 </div>
                 <div>
-                  <p class="text-xs text-slate-500 uppercase tracking-wider">Apelido / Vulgo</p>
-                  <p class="text-sm font-bold text-slate-200">${data.apelido || '<span class="text-slate-600 font-normal">Não informado</span>'}</p>
+                  <p class="text-xs text-slate-500 uppercase">Apelido / Vulgo</p>
+                  <p class="text-sm font-bold text-amber-400">${data.apelido || '<span class="text-slate-600 font-normal">Não informado</span>'}</p>
                 </div>
               </div>
-
-              <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between">
-                <div>
-                  <p class="text-xs text-slate-500 mb-1">Situação de Mandados Judiciais</p>
-                  <span class="inline-block px-2.5 py-1 rounded text-xs font-bold ${
-                    data.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
-                  }">
-                    ${data.mandado !== 'NENHUM' ? 'MANDADO ATIVO: ' + data.mandado : 'SEM RESTRIÇÕES JUDICIAIS'}
-                  </span>
-                </div>
+              <div class="pt-2 border-t border-slate-800/80">
+                <p class="text-xs text-slate-500 mb-1">Situação de Mandados</p>
+                <span class="inline-block px-2.5 py-1 rounded text-xs font-bold ${
+                  data.mandado !== 'NENHUM' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'
+                }">
+                  ${data.mandado !== 'NENHUM' ? 'MANDADO ATIVO: ' + data.mandado : 'SEM RESTRIÇÕES JUDICIAIS'}
+                </span>
               </div>
             </div>
           `;
           return;
         }
 
-        // 4. Busca Veículo por Placa
+        // 4. Veículo por Placa
         docSnap = await db.collection("veiculos").doc(termo.toUpperCase()).get();
 
         if (docSnap.exists) {
-          const data = docSnap.data();
+          const v = docSnap.data();
           conteudoResultado.innerHTML = `
-            <div class="grid grid-cols-2 gap-4 bg-slate-950 p-4 rounded border border-slate-800">
-              <div>
-                <p class="text-xs text-slate-500">Placa / Prefixo</p>
-                <p class="text-sm font-mono font-bold text-amber-500">${data.placa}</p>
+            <div class="bg-slate-950 p-5 rounded-lg border border-slate-800 space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Registro de Veículo</span>
+                <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-amber-400 font-mono font-bold">${v.placa}</span>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <p class="text-xs text-slate-500 uppercase">Modelo</p>
+                  <p class="text-sm font-bold text-slate-200">${v.modelo}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-500 uppercase">Tipo</p>
+                  <p class="text-sm font-bold uppercase text-slate-300">${v.tipo}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-500 uppercase">Cor</p>
+                  <p class="text-sm font-bold text-slate-300">${v.cor}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-500 uppercase">Proprietário (ID)</p>
+                  <p class="text-sm font-mono font-bold text-amber-500">${v.proprietario}</p>
+                </div>
               </div>
               <div>
-                <p class="text-xs text-slate-500">Modelo</p>
-                <p class="text-sm font-bold text-slate-200">${data.modelo}</p>
+                <p class="text-xs text-slate-500 uppercase">Descrição / Observações</p>
+                <p class="text-xs text-slate-300 font-sans mt-0.5">${v.descricao || 'Nenhuma observação registrada.'}</p>
               </div>
-              <div class="col-span-2">
-                <p class="text-xs text-slate-500">Passaporte do Proprietário</p>
-                <p class="text-sm font-mono text-slate-300">${data.proprietario || 'Não vinculado'}</p>
+            </div>
+          `;
+          return;
+        }
+
+        // 5. Bens (por localização ou por passaporte do dono)
+        const qBemLoc = await db.collection("bens").where("localizacao", "==", termo).limit(1).get();
+        const qBemProp = !qBemLoc.empty ? qBemLoc : await db.collection("bens").where("proprietario", "==", termo).limit(1).get();
+
+        if (!qBemProp.empty) {
+          const b = qBemProp.docs[0].data();
+          conteudoResultado.innerHTML = `
+            <div class="bg-slate-950 p-5 rounded-lg border border-slate-800 space-y-4">
+              <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span class="text-xs font-bold text-amber-500 uppercase tracking-wider">Registro Patrimonial (Bem / Imóvel)</span>
+                <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-sans font-bold">${b.tipo}</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p class="text-xs text-slate-500 uppercase">Localização / Endereço</p>
+                  <p class="text-sm font-bold text-slate-200">${b.localizacao}</p>
+                </div>
+                <div>
+                  <p class="text-xs text-slate-500 uppercase">Passaporte Proprietário</p>
+                  <p class="text-sm font-mono font-bold text-amber-500">${b.proprietario}</p>
+                </div>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 uppercase">Descrição do Bem</p>
+                <p class="text-xs text-slate-300 font-sans mt-0.5">${b.descricao || 'Sem anotações complementares.'}</p>
               </div>
             </div>
           `;
@@ -1165,9 +1291,11 @@
     // --- CARREGAR REGISTROS RECENTES EM TEMPO REAL ---
     function carregarRecentes() {
       const tabela = document.getElementById('tabela-recentes');
+
+      // Unifica exibição rápida dos cidadãos cadastrados mais recentemente
       db.collection("cidadaos").orderBy("criadoEm", "desc").limit(8).onSnapshot((snapshot) => {
         if (snapshot.empty) {
-          tabela.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-600 font-sans">Nenhum cidadão registrado ainda. Clique em "+ Novo Cadastro".</td></tr>`;
+          tabela.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-600 font-sans">Nenhum registro encontrado. Clique em "+ Novo Cadastro".</td></tr>`;
           return;
         }
 
@@ -1177,7 +1305,7 @@
           tabela.innerHTML += `
             <tr class="hover:bg-slate-950/40 transition">
               <td class="p-3 text-amber-500 font-bold">${c.passaporte || doc.id}</td>
-              <td class="p-3 font-sans text-slate-200">${c.nome || '-'}</td>
+              <td class="p-3 font-sans text-slate-200 font-medium">${c.nome || '-'}</td>
               <td class="p-3 font-sans text-slate-400">${c.apelido || '-'}</td>
               <td class="p-3 text-slate-400 font-sans">Cidadão</td>
               <td class="p-3">
