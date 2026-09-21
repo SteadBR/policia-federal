@@ -190,7 +190,6 @@
           Operações & Bens
         </button>
 
-        <!-- Menu Auditoria e Logs: Exclusivo para Delegado+ -->
         <button onclick="trocarModulo('auditoria')" id="btn-mod-auditoria" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200 hidden">
           Auditoria & Logs
         </button>
@@ -505,6 +504,79 @@
     </div>
   </div>
 
+  <!-- Modal de Processo Administrativo de Limpeza de Ficha (Delegado+) -->
+  <div id="modal-processo-limpeza" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Processo Administrativo de Reabilitação Policial</h3>
+          <p class="text-[11px] text-slate-400">Instauração e Despacho de Limpeza de Antecedentes Criminais</p>
+        </div>
+        <button onclick="fecharModalProcessoLimpeza()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <input type="hidden" id="proc-cid-passaporte" />
+
+      <div class="space-y-3 text-xs">
+        <div class="bg-slate-950 p-3 rounded border border-slate-800/80 grid grid-cols-2 gap-2">
+          <div>
+            <span class="text-slate-500 text-[10px] uppercase">Requerente (Passaporte)</span>
+            <p id="proc-display-passaporte" class="font-mono font-bold text-amber-500">-</p>
+          </div>
+          <div>
+            <span class="text-slate-500 text-[10px] uppercase">Nome do Cidadão</span>
+            <p id="proc-display-nome" class="font-bold text-slate-200">-</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-400 mb-1">Qtd. de Antecedentes Anteriores <span class="text-amber-500">*</span></label>
+            <input id="proc-qtd-antecedentes" type="number" min="0" placeholder="Ex: 5" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Custas / Taxa Processual Paga <span class="text-amber-500">*</span></label>
+            <input id="proc-taxa" type="text" placeholder="Ex: R$ 50.000,00 ou Isento" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1">Parecer / Fundamentação do Delegado <span class="text-amber-500">*</span></label>
+          <textarea id="proc-parecer" rows="3" placeholder="Informar despacho da autoridade policial, cumprimento das obrigações civis, ausência de mandados e conduta reabilitada..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-slate-400 mb-1">Observações Gerais <span class="text-slate-500 text-[10px]">(Opcional)</span></label>
+          <input id="proc-obs" type="text" placeholder="Ex: Compareceu à Delegacia Central acompanhado de advogado." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+          <button onclick="fecharModalProcessoLimpeza()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded font-bold uppercase transition">Cancelar</button>
+          <button onclick="concluirProcessoLimpeza()" class="bg-emerald-600 hover:bg-emerald-500 text-black px-4 py-2 rounded font-bold uppercase transition">Deferir e Limpar Ficha</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Visualização Completa dos Autos do Processo de Limpeza -->
+  <div id="modal-ver-autos-limpeza" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full p-6 shadow-2xl space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+        <div>
+          <span class="text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800 px-2 py-0.5 rounded font-mono font-bold uppercase">Autos Homologados</span>
+          <h3 id="ver-proc-protocolo" class="text-sm font-bold text-slate-100 mt-1">PAD-LIMP-...</h3>
+        </div>
+        <button onclick="fecharModalVerAutosLimpeza()" class="text-slate-400 hover:text-white">&times;</button>
+      </div>
+
+      <div id="ver-proc-conteudo" class="space-y-3 text-xs"></div>
+
+      <div class="pt-3 border-t border-slate-800 text-right">
+        <button onclick="fecharModalVerAutosLimpeza()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded font-bold uppercase transition text-xs">Fechar Autos</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal de Instaurar IPL -->
   <div id="modal-criar-ipl" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full p-6 shadow-2xl">
@@ -692,7 +764,6 @@
       return 'Agente Federal';
     }
 
-    // FORMATAÇÃO LIMPA DE MANDADOS (SEM _)
     function formatarMandado(mandado) {
       if (!mandado || mandado === 'NENHUM') return 'Sem Restrições Judiciais';
       if (mandado === 'PRISAO_PREVENTIVA') return 'Mandado de Prisão Preventiva';
@@ -700,7 +771,6 @@
       return mandado.replace(/_/g, ' ');
     }
 
-    // FORMATAÇÃO LIMPA DE STATUS E CATEGORIAS (SEM _)
     function formatarStatus(status) {
       if (!status) return '-';
       if (status === 'EM_ANDAMENTO') return 'Em Andamento';
@@ -931,7 +1001,6 @@
 
           registrarConexaoOperador(dados);
 
-          // Libera o botão de auditoria APENAS para Delegado+
           if (ehDelegadoOuSuperior()) {
             document.getElementById('btn-mod-auditoria').classList.remove('hidden');
           } else {
@@ -1145,9 +1214,8 @@
       }
     }
 
-    // --- NAVEGAÇÃO DE MÓDULOS COM PROTEÇÃO RBAC ---
+    // --- NAVEGAÇÃO DE MÓDULOS ---
     function trocarModulo(modulo) {
-      // Bloqueio de segurança: Auditoria exclusiva para Delegado+
       if (modulo === 'auditoria' && !ehDelegadoOuSuperior()) {
         alert("ACESSO RESTRITO: O módulo de Auditoria e Corregedoria é exclusivo para Delegados Federais ou autoridade superior.");
         return;
@@ -1251,44 +1319,143 @@
       }
     }
 
-    // --- LIMPAR FICHA POLICIAL (RESTRITO A DELEGADO+) COM TERMO "ARQUIVADOS" ---
-    async function limparFichaPolicial(passaporte) {
+    // --- PROCESSO ADMINISTRATIVO DE LIMPEZA DE FICHA (DELEGADO+) ---
+    function abrirModalProcessoLimpeza(passaporte, nomeCodificado) {
       if (!ehDelegadoOuSuperior()) {
-        return alert("ACESSO NEGADO: Apenas Delegados Federais ou a Direção-Geral possuem autoridade para determinar a limpeza/reabilitação de uma ficha policial.");
+        return alert("ACESSO NEGADO: Apenas Delegados Federais ou Direção-Geral possuem competência para instaurar Processo Administrativo de Limpeza de Ficha.");
       }
 
-      const motivo = prompt(`ATENÇÃO - PROCEDIMENTO DE REABILITAÇÃO CRIMINAL\n\nVocê está prestes a limpar todos os registros e antecedentes do Passaporte ${passaporte}.\n\nInforme a motivação legal/despacho para auditoria:`);
-      if (!motivo) return;
+      const nome = decodeURIComponent(nomeCodificado);
+      document.getElementById('proc-cid-passaporte').value = passaporte;
+      document.getElementById('proc-display-passaporte').textContent = passaporte;
+      document.getElementById('proc-display-nome').textContent = nome || 'Nome Não Informado';
+      document.getElementById('proc-qtd-antecedentes').value = '';
+      document.getElementById('proc-taxa').value = '';
+      document.getElementById('proc-parecer').value = '';
+      document.getElementById('proc-obs').value = '';
 
+      document.getElementById('modal-processo-limpeza').classList.remove('hidden');
+      document.getElementById('modal-processo-limpeza').classList.add('flex');
+    }
+
+    function fecharModalProcessoLimpeza() {
+      document.getElementById('modal-processo-limpeza').classList.add('hidden');
+      document.getElementById('modal-processo-limpeza').classList.remove('flex');
+    }
+
+    async function concluirProcessoLimpeza() {
+      const passaporte = document.getElementById('proc-cid-passaporte').value;
+      const qtdAntecedentes = document.getElementById('proc-qtd-antecedentes').value.trim();
+      const taxa = document.getElementById('proc-taxa').value.trim();
+      const parecer = document.getElementById('proc-parecer').value.trim();
+      const obs = document.getElementById('proc-obs').value.trim();
+
+      if (!qtdAntecedentes || !taxa || !parecer) {
+        return alert('Por favor, informe a quantidade de antecedentes, a taxa processual recolhida e o parecer do Delegado.');
+      }
+
+      const anoAtual = new Date().getFullYear();
+      const numAleatorio = Math.floor(1000 + Math.random() * 9000);
+      const protocoloProc = `PAD-LIMP-${anoAtual}.${numAleatorio}`;
       const autoridade = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
 
       try {
-        const registroFichaLimpa = [{
+        const dadosProcesso = {
+          protocolo: protocoloProc,
+          passaporteRequerente: passaporte,
+          qtdAntecedentesArquivados: parseInt(qtdAntecedentes) || 0,
+          taxaRecolhida: taxa,
+          parecerDelegado: parecer,
+          observacoes: obs || 'Sem observações adicionais.',
+          autoridadeResponsavel: autoridade,
+          dataHomologacao: new Date().toISOString()
+        };
+
+        const certidaoHistorico = [{
           data: new Date().toISOString(),
-          texto: `[FICHA LIMPA / REABILITAÇÃO JUDICIAL] Todos os antecedentes e registros criminais anteriores foram arquivados por determinação de autoridade policial competente. Motivo/Despacho: "${motivo}".`,
+          texto: `[FICHA LIMPA / REABILITAÇÃO JUDICIAL] Todos os ${qtdAntecedentes} antecedentes e registros criminais anteriores foram arquivados mediante o Processo Administrativo nº ${protocoloProc}. Motivação: "${parecer}".`,
           agente: autoridade
         }];
 
+        // Grava na ficha do cidadão com vínculo do processo consultável
         await db.collection("cidadaos").doc(passaporte).update({
-          historico: registroFichaLimpa,
+          historico: certidaoHistorico,
           mandado: "NENHUM",
+          processoLimpeza: dadosProcesso,
           limpoEm: firebase.firestore.FieldValue.serverTimestamp(),
           limpoPor: autoridade
         });
 
+        // Grava no log de auditoria
         await db.collection("auditoria").add({
-          acao: "LIMPEZA_DE_FICHA",
-          alvo: `Passaporte: ${passaporte} | Motivo: ${motivo}`,
+          acao: "HOMOLOGACAO_PROCESSO_LIMPEZA",
+          alvo: `Passaporte: ${passaporte} | Processo: ${protocoloProc} | Arquivados: ${qtdAntecedentes}`,
           agente: autoridade,
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert(`Ficha do Passaporte ${passaporte} limpa e reabilitada com sucesso.`);
+        alert(`Processo Administrativo ${protocoloProc} homologado com sucesso!\nA ficha policial do Passaporte ${passaporte} foi limpa e reabilitada.`);
+        fecharModalProcessoLimpeza();
         document.getElementById('input-busca').value = passaporte;
         executarConsulta();
       } catch (err) {
-        alert("Erro ao limpar ficha: " + traduzirErro(err));
+        alert("Erro ao homologar processo de limpeza: " + traduzirErro(err));
       }
+    }
+
+    function abrirModalVerAutosLimpeza(protocolo, dadosEncoded) {
+      const dados = JSON.parse(decodeURIComponent(dadosEncoded));
+      document.getElementById('ver-proc-protocolo').textContent = `Autos nº ${dados.protocolo || protocolo}`;
+
+      const html = `
+        <div class="bg-slate-950 p-4 rounded border border-slate-800 space-y-3">
+          <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-800/80">
+            <div>
+              <span class="text-slate-500 text-[10px] uppercase">Requerente</span>
+              <p class="font-mono font-bold text-amber-500">ID: ${dados.passaporteRequerente}</p>
+            </div>
+            <div>
+              <span class="text-slate-500 text-[10px] uppercase">Data de Homologação</span>
+              <p class="font-sans text-slate-300">${new Date(dados.dataHomologacao).toLocaleString('pt-BR')}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 pb-3 border-b border-slate-800/80">
+            <div>
+              <span class="text-slate-500 text-[10px] uppercase">Antecedentes Arquivados</span>
+              <p class="font-mono font-bold text-slate-200 text-sm">${dados.qtdAntecedentesArquivados} registro(s)</p>
+            </div>
+            <div>
+              <span class="text-slate-500 text-[10px] uppercase">Taxa Processual Recolhida</span>
+              <p class="font-sans font-bold text-emerald-400 text-sm">${dados.taxaRecolhida}</p>
+            </div>
+          </div>
+
+          <div>
+            <span class="text-slate-500 text-[10px] uppercase">Autoridade Policial que Deferiu</span>
+            <p class="font-sans font-bold text-slate-200">${dados.autoridadeResponsavel}</p>
+          </div>
+
+          <div>
+            <span class="text-slate-500 text-[10px] uppercase">Parecer / Fundamentação Legal</span>
+            <p class="font-sans text-slate-200 bg-slate-900/60 p-2.5 rounded border border-slate-800 mt-1 leading-relaxed whitespace-pre-wrap">${dados.parecerDelegado}</p>
+          </div>
+
+          <div>
+            <span class="text-slate-500 text-[10px] uppercase">Observações Adicionais</span>
+            <p class="font-sans text-slate-400 mt-0.5">${dados.observacoes || 'Sem anotações complementares.'}</p>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('ver-proc-conteudo').innerHTML = html;
+      document.getElementById('modal-ver-autos-limpeza').classList.remove('hidden');
+      document.getElementById('modal-ver-autos-limpeza').classList.add('flex');
+    }
+
+    function fecharModalVerAutosLimpeza() {
+      document.getElementById('modal-ver-autos-limpeza').classList.add('hidden');
+      document.getElementById('modal-ver-autos-limpeza').classList.remove('flex');
     }
 
     // --- ANEXAR REGISTRO NA FICHA ---
@@ -1391,7 +1558,7 @@
         tbody.innerHTML = "";
         snap.forEach((doc) => {
           const ipl = doc.data();
-          const suspeitosBadges = (ipl.suspeitos || []).map(s => `<span class="bg-slate-800 text-amber-500 px-1.5 py-0.5 rounded text-[10px] mr-1">ID:${s}</span>`).join('');
+          const suspeitosBadges = (ipl.suspeitos || []).map(s => `<span class="bg-slate-800 text-amber-500 px-1.5 py-0.5 rounded text-[10px] mr-1 font-mono">ID:${s}</span>`).join('');
           
           tbody.innerHTML += `
             <tr class="hover:bg-slate-950/40">
@@ -1598,7 +1765,7 @@
       }
     }
 
-    // --- CONSULTA UNIFICADA ---
+    // --- CONSULTA UNIFICADA (COM PROCESSO DE LIMPEZA CONSULTÁVEL) ---
     async function executarConsulta() {
       const termo = document.getElementById('input-busca').value.trim();
       const areaResultado = document.getElementById('resultado-pesquisa');
@@ -1637,7 +1804,29 @@
           const pass = data.passaporte || docSnap.id;
           const fotoUrl = data.fotoUrl || FOTO_PADRAO;
           const historico = data.historico || [];
+          const procLimpeza = data.processoLimpeza || null;
 
+          // Bloco de exibição de Processo de Limpeza se houver
+          let processoLimpezaHtml = "";
+          if (procLimpeza) {
+            const procDadosJson = encodeURIComponent(JSON.stringify(procLimpeza));
+            processoLimpezaHtml = `
+              <div class="bg-emerald-950/30 border border-emerald-800/80 rounded-lg p-4 space-y-2">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                    <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Processo de Reabilitação Homologado (Ficha Limpa)</span>
+                  </div>
+                  <button onclick="abrirModalVerAutosLimpeza('${procLimpeza.protocolo}', '${procDadosJson}')" class="bg-emerald-600 hover:bg-emerald-500 text-black px-3 py-1 rounded text-xs font-bold uppercase transition">
+                    Ver Autos do Processo
+                  </button>
+                </div>
+                <p class="text-xs text-slate-300 font-sans">Protocolo: <span class="font-mono font-bold text-amber-400">${procLimpeza.protocolo}</span> • Homologado por: <span class="font-bold text-slate-200">${procLimpeza.autoridadeResponsavel}</span> • Registros arquivados: <span class="font-mono font-bold text-amber-400">${procLimpeza.qtdAntecedentesArquivados}</span>.</p>
+              </div>
+            `;
+          }
+
+          // Consulta IPLs em aberto
           let iplsHtml = `<p class="text-xs text-slate-500 italic py-1">Nenhum inquérito policial (IPL) instaurado para este passaporte.</p>`;
           try {
             const snapIpls = await db.collection("inqueritos").where("suspeitos", "array-contains", pass).get();
@@ -1690,7 +1879,7 @@
                 <!-- Foto -->
                 <div class="w-36 h-44 rounded-lg overflow-hidden border-2 border-slate-700 bg-slate-900 shrink-0 shadow-lg relative group">
                   <img src="${fotoUrl}" alt="Foto Suspeito" class="w-full h-full object-cover" onerror="this.src='${FOTO_PADRAO}'" />
-                  <div class="absolute bottom-0 inset-x-0 bg-slate-950/90 text-center py-1 text-[9px] font-bold uppercase tracking-wider text-amber-500">
+                  <div class="absolute bottom-0 inset-x-0 bg-slate-950/90 text-center py-1 text-[9px] font-bold uppercase tracking-wider text-amber-500 font-mono">
                     ID: ${pass}
                   </div>
                 </div>
@@ -1711,8 +1900,8 @@
                       </button>
 
                       ${ehDelegadoOuSuperior() ? `
-                        <button onclick="limparFichaPolicial('${pass}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 px-3 py-1.5 rounded text-xs font-bold uppercase transition shadow">
-                          Limpar Ficha
+                        <button onclick="abrirModalProcessoLimpeza('${pass}', '${encodeURIComponent(data.nome || '')}')" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition shadow">
+                          Abrir Processo de Limpeza
                         </button>
                       ` : ''}
                     </div>
@@ -1734,6 +1923,9 @@
                   </div>
                 </div>
               </div>
+
+              <!-- Processo Administrativo de Limpeza de Ficha (se houver) -->
+              ${processoLimpezaHtml}
 
               <!-- Inquéritos Policiais (IPLs) Vinculados -->
               <div class="border-t border-slate-800 pt-4">
