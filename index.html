@@ -39,9 +39,11 @@
   <!-- Cabeçalho Institucional -->
   <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 bg-amber-600 rounded flex items-center justify-center font-black text-black text-lg tracking-wider shadow-lg shadow-amber-900/20">
-        PF
-      </div>
+      <img 
+        src="https://thumb.wikimedia.org/wikipedia/commons/thumb/3/33/Pol%C3%ADcia_Federal.svg/960px-Pol%C3%ADcia_Federal.svg.png" 
+        alt="Brasão Polícia Federal" 
+        class="h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]"
+      />
       <div>
         <div class="flex items-center gap-2">
           <h1 class="text-sm font-bold uppercase tracking-wider text-slate-100">SISINT / DPF</h1>
@@ -238,7 +240,7 @@
 
   <!-- Lógica da Aplicação -->
   <script>
-    // 1. Inicialização do Firebase com as suas credenciais
+    // 1. Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCVQGVmjFnBFD_lePb1mDnTg9xFOt3eb1M",
       authDomain: "systempf-d451b.firebaseapp.com",
@@ -312,7 +314,6 @@
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
           });
 
-          // Log de Auditoria
           await db.collection("auditoria").add({
             acao: "CADASTRO_CIDADAO",
             alvo: cpf,
@@ -334,7 +335,6 @@
             criadoEm: firebase.firestore.FieldValue.serverTimestamp()
           });
 
-          // Log de Auditoria
           await db.collection("auditoria").add({
             acao: "CADASTRO_VEICULO",
             alvo: placa,
@@ -362,7 +362,6 @@
       areaResultado.classList.remove('hidden');
 
       try {
-        // Registrar consulta na Auditoria (Anti-Metagaming)
         await db.collection("auditoria").add({
           acao: "CONSULTA",
           alvo: termo,
@@ -370,7 +369,7 @@
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Tenta buscar por CPF
+        // Consulta Cidadão por CPF
         let docSnap = await db.collection("cidadaos").doc(termo).get();
 
         if (docSnap.exists) {
@@ -398,7 +397,7 @@
           return;
         }
 
-        // Tenta buscar por Placa
+        // Consulta Veículo por Placa
         docSnap = await db.collection("veiculos").doc(termo.toUpperCase()).get();
 
         if (docSnap.exists) {
