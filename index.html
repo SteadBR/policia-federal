@@ -204,7 +204,7 @@
 
       <div class="bg-slate-950/60 p-3 rounded border border-slate-800/80 text-[11px] text-slate-500">
         <p class="text-amber-500 font-bold mb-1">AVISO DE SEGURANÇA</p>
-        Todas as pesquisas deixam registos auditáveis. O uso indevido constitui infração correcional.
+        Endereço IP, localização e consultas são monitorados permanentemente para fins de auditoria correcional.
       </div>
     </aside>
 
@@ -238,7 +238,7 @@
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Registos Recentes no Sistema</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Registros Recentes no Sistema</h2>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
@@ -252,7 +252,7 @@
               </thead>
               <tbody id="tabela-recentes" class="divide-y divide-slate-800 font-mono">
                 <tr>
-                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">A carregar registos...</td>
+                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">A carregar registros...</td>
                 </tr>
               </tbody>
             </table>
@@ -275,17 +275,64 @@
         </div>
       </section>
 
-      <section id="modulo-auditoria" class="hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
-          <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Auditoria e Corregedoria</h2>
-          <p class="text-xs text-slate-400 mt-2">Histórico completo de acessos a dados e cadastros realizados.</p>
+      <!-- ================= MÓDULO 4: AUDITORIA E LOGS (COM IP + LOCAL + HORA) ================= -->
+      <section id="modulo-auditoria" class="hidden space-y-6">
+        
+        <!-- Tabela de Conexões e IPs -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500">Monitor de Acessos ao Sistema (IP / Localização / Horário)</h2>
+            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">Tempo Real</span>
+          </div>
+          <p class="text-xs text-slate-400 mb-4">Registro forense de cada operador que iniciou sessão no terminal com geolocalização de rede.</p>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Data e Hora</th>
+                  <th class="p-3">Operador (Passaporte)</th>
+                  <th class="p-3">Endereço IP</th>
+                  <th class="p-3">Localização Estimada</th>
+                  <th class="p-3">Provedor / ASN</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-logs-acesso" class="divide-y divide-slate-800 font-mono">
+                <tr>
+                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">Aguardando registros de conexão...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabela de Ações e Consultas Auditadas -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Registro de Atividades e Pesquisas</h2>
+          <p class="text-xs text-slate-400 mb-4">Histórico de pesquisas e cadastros realizados pelos agentes.</p>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Data e Hora</th>
+                  <th class="p-3">Ação</th>
+                  <th class="p-3">Alvo Pesquisado / Inserido</th>
+                  <th class="p-3">Operador Responsável</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-logs-acoes" class="divide-y divide-slate-800 font-mono">
+                <tr>
+                  <td colspan="4" class="p-4 text-center text-slate-600 font-sans">Aguardando histórico de ações...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
       <!-- ================= MÓDULO ADMIN: GESTÃO DE ACESSOS ================= -->
       <section id="modulo-admin" class="hidden space-y-6">
-        
-        <!-- Aprovações Pendentes -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2">Aprovações de Credenciamento Pendentes</h2>
           <p class="text-xs text-slate-400 mb-4">Autorize novos agentes e investigadores a utilizarem o sistema.</p>
@@ -310,7 +357,6 @@
           </div>
         </div>
 
-        <!-- Agentes Ativos no Sistema (Editar Nome e Cargo) -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200 mb-2">Quadro de Operadores Credenciados</h2>
           <p class="text-xs text-slate-400 mb-4">Altere o nome operacional, patente ou atribuição de qualquer agente ativo.</p>
@@ -335,7 +381,6 @@
           </div>
         </div>
 
-        <!-- Redefinição de Senha -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Redefinição de Senha (Direção-Geral)</h2>
           <p class="text-xs text-slate-400 mb-4">Envie um e-mail com link de redefinição para o operador pelo Passaporte dele.</p>
@@ -467,6 +512,7 @@
 
     let usuarioLogado = null;
     let cadastrandoNovo = false;
+    let sessaoRegistrada = false; // Evita duplicar log de conexão na mesma sessão
 
     function formatarCargo(cargo) {
       if (cargo === 'DIRETOR_GERAL' || cargo === 'ADMIN') return 'Diretor-Geral';
@@ -474,6 +520,53 @@
       if (cargo === 'PERITO') return 'Perito Federal';
       if (cargo === 'ESCRIVAO') return 'Escrivão Federal';
       return 'Agente Federal';
+    }
+
+    function formatarDataHora(timestamp) {
+      if (!timestamp) return '-';
+      const data = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      return data.toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'medium' });
+    }
+
+    // --- CAPTURA DE IP E GEOLOCALIZAÇÃO ---
+    async function registrarConexaoOperador(usuario) {
+      if (sessaoRegistrada) return;
+      sessaoRegistrada = true;
+
+      try {
+        let ip = "Desconhecido";
+        let local = "Não identificado";
+        let provedor = "Desconhecido";
+
+        try {
+          // Busca IP e localização via API pública
+          const resp = await fetch('https://ipapi.co/json/');
+          if (resp.ok) {
+            const data = await resp.json();
+            ip = data.ip || ip;
+            const cidade = data.city || '';
+            const regiao = data.region_code || data.region || '';
+            const pais = data.country_name || '';
+            local = `${cidade}${cidade && regiao ? ' - ' : ''}${regiao}, ${pais}`;
+            provedor = data.org || data.asn || provedor;
+          }
+        } catch (e) {
+          console.warn("Falha ao obter geolocalização do IP:", e);
+        }
+
+        // Grava o log de conexão no Firestore
+        await db.collection("auditoria_acessos").add({
+          passaporte: usuario.passaporte,
+          nome: usuario.nome || 'Não informado',
+          ip: ip,
+          localizacao: local,
+          provedor: provedor,
+          dataHora: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+      } catch (err) {
+        console.error("Erro ao salvar log de acesso:", err);
+      }
     }
 
     function traduzirErro(erro) {
@@ -631,6 +724,7 @@
       }
     }
 
+    // Monitor de Sessão
     auth.onAuthStateChanged(async (user) => {
       if (cadastrandoNovo) return;
 
@@ -650,6 +744,9 @@
           document.getElementById('top-usuario-id').textContent = `ID: ${dados.passaporte}`;
           document.getElementById('tela-login').classList.add('hidden');
 
+          // Registra Conexão (IP + Local + Data/Hora)
+          registrarConexaoOperador(dados);
+
           if (dados.cargo === 'DIRETOR_GERAL' || dados.cargo === 'ADMIN') {
             document.getElementById('btn-mod-admin').classList.remove('hidden');
             carregarUsuariosPendentes();
@@ -657,15 +754,66 @@
           }
 
           carregarRecentes();
+          carregarLogsAuditoria();
         }
       } else {
         usuarioLogado = null;
+        sessaoRegistrada = false;
         document.getElementById('tela-login').classList.remove('hidden');
       }
     });
 
     async function deslogar() {
+      sessaoRegistrada = false;
       await auth.signOut();
+    }
+
+    // --- CARREGAR AUDITORIA (LOGS DE ACESSO E AÇÕES) ---
+    function carregarLogsAuditoria() {
+      // 1. Logs de Conexão com IP e Local
+      db.collection("auditoria_acessos").orderBy("dataHora", "desc").limit(15).onSnapshot((snap) => {
+        const tbody = document.getElementById('tabela-logs-acesso');
+        if (snap.empty) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhum registro de acesso gravado.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = "";
+        snap.forEach((doc) => {
+          const l = doc.data();
+          tbody.innerHTML += `
+            <tr class="hover:bg-slate-950/40">
+              <td class="p-3 text-slate-400 font-sans">${formatarDataHora(l.dataHora)}</td>
+              <td class="p-3 text-amber-500 font-bold">${l.nome} <span class="text-slate-500 text-[11px] font-normal font-mono">(ID: ${l.passaporte})</span></td>
+              <td class="p-3 text-emerald-400">${l.ip || '0.0.0.0'}</td>
+              <td class="p-3 font-sans text-slate-300">${l.localizacao || 'Desconhecida'}</td>
+              <td class="p-3 font-sans text-slate-500 text-[11px]">${l.provedor || '-'}</td>
+            </tr>
+          `;
+        });
+      });
+
+      // 2. Logs de Ações e Consultas
+      db.collection("auditoria").orderBy("data", "desc").limit(15).onSnapshot((snap) => {
+        const tbody = document.getElementById('tabela-logs-acoes');
+        if (snap.empty) {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-600 font-sans">Nenhuma ação registrada.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = "";
+        snap.forEach((doc) => {
+          const l = doc.data();
+          tbody.innerHTML += `
+            <tr class="hover:bg-slate-950/40">
+              <td class="p-3 text-slate-400 font-sans">${formatarDataHora(l.data)}</td>
+              <td class="p-3 font-bold text-amber-500">${l.acao}</td>
+              <td class="p-3 font-sans text-slate-300">${l.alvo}</td>
+              <td class="p-3 font-sans text-slate-400">${l.agente}</td>
+            </tr>
+          `;
+        });
+      });
     }
 
     // --- GESTÃO DE ACESSOS (DIREÇÃO-GERAL) ---
@@ -695,7 +843,6 @@
       });
     }
 
-    // Carregar Lista de Agentes Ativos para Edição
     function carregarUsuariosAtivos() {
       db.collection("usuarios").where("status", "==", "APROVADO").onSnapshot((snap) => {
         const tbody = document.getElementById('tabela-ativos');
@@ -725,7 +872,6 @@
       });
     }
 
-    // Funções do Modal de Edição de Operador
     function abrirModalEdicaoUsuario(id, nomeCodificado, cargo) {
       const nome = decodeURIComponent(nomeCodificado);
       document.getElementById('edit-user-id').value = id;
@@ -757,7 +903,6 @@
           alteradoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Registrar auditoria
         await db.collection("auditoria").add({
           acao: "ALTERACAO_USUARIO",
           alvo: `ID ${id} - Novo Nome: ${novoNome} - Cargo: ${novoCargo}`,
@@ -768,7 +913,6 @@
         alert(`Dados do Passaporte ${id} atualizados com sucesso!`);
         fecharModalEdicaoUsuario();
 
-        // Se o próprio operador alterou seu perfil, atualiza o topo
         if (usuarioLogado && usuarioLogado.passaporte === id) {
           usuarioLogado.nome = novoNome;
           usuarioLogado.cargo = novoCargo;
