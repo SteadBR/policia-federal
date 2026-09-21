@@ -36,14 +36,111 @@
 </head>
 <body class="min-h-screen flex flex-col font-sans select-none">
 
-  <!-- Cabeçalho Institucional -->
+  <!-- ================= TELA DE LOGIN / AUTENTICAÇÃO ================= -->
+  <div id="tela-login" class="fixed inset-0 bg-[#080c14] z-50 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-xl p-8 shadow-2xl relative">
+      
+      <!-- Brasão e Identidade -->
+      <div class="flex flex-col items-center text-center mb-6">
+        <img 
+          src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
+          alt="Brasão Polícia Federal" 
+          class="h-20 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] mb-3"
+        />
+        <h1 class="text-base font-bold uppercase tracking-wider text-slate-100">SISINT / DPF</h1>
+        <p class="text-xs text-amber-500 font-semibold tracking-wide">Departamento de Polícia Federal</p>
+      </div>
+
+      <div id="login-alerta" class="hidden mb-4 p-3 rounded text-xs font-medium"></div>
+
+      <!-- Formulário: Entrar (ID + Senha) -->
+      <div id="bloco-login" class="space-y-4">
+        <div>
+          <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Passaporte (ID do Agente)</label>
+          <input id="login-id" type="text" placeholder="Ex: 1024" 
+            class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="block text-slate-400 text-xs uppercase tracking-wider">Senha Operacional</label>
+            <button onclick="alternarVisaoAuth('recuperar')" class="text-[11px] text-amber-500 hover:underline">Esqueceu a senha?</button>
+          </div>
+          <input id="login-senha" type="password" placeholder="••••••••" 
+            class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <button onclick="realizarLogin()" id="btn-login" class="w-full bg-amber-600 hover:bg-amber-500 text-black font-bold uppercase py-2.5 rounded text-xs tracking-wider transition">
+          Acessar Terminal
+        </button>
+
+        <div class="text-center pt-3 border-t border-slate-800">
+          <button onclick="alternarVisaoAuth('cadastro')" class="text-xs text-slate-400 hover:text-amber-500 transition">
+            Não possui acesso? <span class="font-bold underline">Solicitar credenciamento</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulário: Cadastro (ID + Senha + Email) -->
+      <div id="bloco-cadastro" class="space-y-4 hidden">
+        <div>
+          <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Passaporte (ID no Servidor)</label>
+          <input id="cad-auth-id" type="text" placeholder="Ex: 1024" 
+            class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">E-mail Pessoal / Recuperação</label>
+          <input id="cad-auth-email" type="email" placeholder="agente@exemplo.com" 
+            class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Senha de Acesso</label>
+          <input id="cad-auth-senha" type="password" placeholder="Mínimo 6 dígitos" 
+            class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <p class="text-[11px] text-slate-500">A conta passará por aprovação de um Administrador antes do acesso ser liberado.</p>
+
+        <button onclick="realizarCadastro()" id="btn-cad-auth" class="w-full bg-amber-600 hover:bg-amber-500 text-black font-bold uppercase py-2.5 rounded text-xs tracking-wider transition">
+          Enviar Cadastro para Aprovação
+        </button>
+
+        <div class="text-center pt-2 border-t border-slate-800">
+          <button onclick="alternarVisaoAuth('login')" class="text-xs text-slate-400 hover:text-amber-500 transition">
+            Já possui conta? <span class="font-bold underline">Voltar para o Login</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Formulário: Recuperar Senha -->
+      <div id="bloco-recuperar" class="space-y-4 hidden">
+        <p class="text-xs text-slate-400">Insira o e-mail cadastrado ou o seu ID (Passaporte) para receber o link de redefinição de senha.</p>
+        <div>
+          <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Passaporte ou E-mail</label>
+          <input id="rec-termo" type="text" placeholder="ID ou email cadastrado..." 
+            class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+
+        <button onclick="recuperarSenha()" class="w-full bg-amber-600 hover:bg-amber-500 text-black font-bold uppercase py-2.5 rounded text-xs tracking-wider transition">
+          Enviar E-mail de Recuperação
+        </button>
+
+        <div class="text-center pt-2 border-t border-slate-800">
+          <button onclick="alternarVisaoAuth('login')" class="text-xs text-slate-400 hover:text-amber-500 transition">
+            Voltar para o Login
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= CABEÇALHO DO SISTEMA ================= -->
   <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <!-- Brasão Oficial da Polícia Federal -->
       <img 
         src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
         alt="Brasão Polícia Federal" 
-        class="h-12 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
+        class="h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
       />
       <div>
         <div class="flex items-center gap-2">
@@ -57,16 +154,16 @@
     <!-- Indicador de Operador e Banco -->
     <div class="flex items-center gap-4">
       <div class="text-right border-r border-slate-800 pr-4">
-        <p class="text-xs font-semibold text-slate-200">Agente Federal</p>
-        <p class="text-[10px] text-amber-500 font-mono">Matrícula: DPF-001</p>
+        <p id="top-usuario-cargo" class="text-xs font-semibold text-slate-200">Agente</p>
+        <p id="top-usuario-id" class="text-[10px] text-amber-500 font-mono">ID: -</p>
       </div>
-      <div id="status-conexao" class="text-[11px] px-2.5 py-1 rounded bg-slate-800 text-slate-400 font-mono">
-        Conectando...
-      </div>
+      <button onclick="deslogar()" class="text-xs bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-3 py-1 rounded transition uppercase">
+        Sair
+      </button>
     </div>
   </header>
 
-  <!-- Layout Principal -->
+  <!-- ================= LAYOUT PRINCIPAL ================= -->
   <div class="flex-1 flex overflow-hidden">
     
     <!-- Sidebar de Navegação -->
@@ -89,6 +186,11 @@
         <button onclick="trocarModulo('auditoria')" id="btn-mod-auditoria" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
           Auditoria & Logs
         </button>
+
+        <!-- Menu de Gestão de Contas (Visível para Administradores) -->
+        <button onclick="trocarModulo('admin')" id="btn-mod-admin" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-amber-500/80 hover:bg-amber-600/10 hidden">
+          Gestão de Acessos
+        </button>
       </nav>
 
       <div class="bg-slate-950/60 p-3 rounded border border-slate-800/80 text-[11px] text-slate-500">
@@ -97,13 +199,11 @@
       </div>
     </aside>
 
-    <!-- Área de Exibição dos Módulos -->
+    <!-- Área de Conteúdo Central -->
     <main class="flex-1 p-6 overflow-y-auto bg-[#080c14]">
 
       <!-- ================= MÓDULO 1: CONSULTA E CADASTRO ================= -->
       <section id="modulo-consulta" class="space-y-6">
-        
-        <!-- Barra de Busca -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <div class="flex justify-between items-center mb-3">
             <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300">Consulta Unificada (Cidadãos & Veículos)</h2>
@@ -121,7 +221,6 @@
           </div>
         </div>
 
-        <!-- Área de Resultados -->
         <div id="resultado-pesquisa" class="hidden">
           <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
             <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500 mb-4 border-b border-slate-800 pb-2">Resultado Encontrado</h3>
@@ -129,7 +228,6 @@
           </div>
         </div>
 
-        <!-- Tabela de Cadastros Recentes -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Registros Recentes no Sistema</h2>
           <div class="overflow-x-auto">
@@ -153,7 +251,7 @@
         </div>
       </section>
 
-      <!-- Módulos Seguintes -->
+      <!-- Módulos Inquéritos e Operações -->
       <section id="modulo-inqueritos" class="hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
           <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Inquéritos Policiais (IPL)</h2>
@@ -171,14 +269,54 @@
       <section id="modulo-auditoria" class="hidden">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-6">
           <h2 class="text-sm font-bold uppercase text-slate-200">Módulo de Auditoria e Corregedoria</h2>
-          <p class="text-xs text-slate-400 mt-2">Histórico completo de quem pesquisou quais registros e em qual data/hora.</p>
+          <p class="text-xs text-slate-400 mt-2">Histórico completo de acessos a dados e cadastros realizados.</p>
+        </div>
+      </section>
+
+      <!-- ================= MÓDULO 5: GESTÃO DE ACESSOS (ADMIN) ================= -->
+      <section id="modulo-admin" class="hidden space-y-6">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2">Aprovações de Credenciamento Pendentes</h2>
+          <p class="text-xs text-slate-400 mb-4">Autorize novos agentes ou escrivães a utilizarem o sistema.</p>
+          
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
+                <tr>
+                  <th class="p-3">Passaporte (ID)</th>
+                  <th class="p-3">E-mail Cadastrado</th>
+                  <th class="p-3">Status</th>
+                  <th class="p-3 text-right">Ação</th>
+                </tr>
+              </thead>
+              <tbody id="tabela-pendentes" class="divide-y divide-slate-800 font-mono">
+                <tr>
+                  <td colspan="4" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Painel de Reset de Senha por Admin Geral -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Redefinição de Senha (Última Instância)</h2>
+          <p class="text-xs text-slate-400 mb-4">Envie um e-mail de redefinição forçado para o operador pelo Passaporte dele.</p>
+          
+          <div class="flex gap-3 max-w-md">
+            <input id="admin-reset-id" type="text" placeholder="Passaporte (ID)..." 
+              class="flex-1 bg-slate-950 border border-slate-800 rounded px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-amber-500" />
+            <button onclick="adminEnviarResetSenha()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded text-xs font-bold uppercase transition">
+              Disparar Reset
+            </button>
+          </div>
         </div>
       </section>
 
     </main>
   </div>
 
-  <!-- Modal de Cadastro Rápido -->
+  <!-- Modal de Cadastro Rápido (Cidadãos / Veículos) -->
   <div id="modal-cadastro" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
@@ -195,7 +333,6 @@
           </select>
         </div>
 
-        <!-- Campos Cidadão -->
         <div id="campos-cidadao" class="space-y-3">
           <div>
             <label class="block text-slate-400 mb-1">CPF</label>
@@ -215,7 +352,6 @@
           </div>
         </div>
 
-        <!-- Campos Veículo -->
         <div id="campos-veiculo" class="space-y-3 hidden">
           <div>
             <label class="block text-slate-400 mb-1">Placa / Prefixo</label>
@@ -239,9 +375,8 @@
     </div>
   </div>
 
-  <!-- Lógica da Aplicação -->
+  <!-- ================= JAVASCRIPT & LÓGICA ================= -->
   <script>
-    // 1. Configuração do Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyCVQGVmjFnBFD_lePb1mDnTg9xFOt3eb1M",
       authDomain: "systempf-d451b.firebaseapp.com",
@@ -253,20 +388,244 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    const statusEl = document.getElementById('status-conexao');
-    if (db) {
-      statusEl.textContent = "● Firestore Conectado";
-      statusEl.className = "text-[11px] px-2.5 py-1 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-mono";
+    let usuarioLogado = null;
+
+    // --- CONTROLE DA TELA DE LOGIN ---
+    function alternarVisaoAuth(modo) {
+      document.getElementById('bloco-login').classList.add('hidden');
+      document.getElementById('bloco-cadastro').classList.add('hidden');
+      document.getElementById('bloco-recuperar').classList.add('hidden');
+      esconderAlertaLogin();
+
+      if (modo === 'login') document.getElementById('bloco-login').classList.remove('hidden');
+      if (modo === 'cadastro') document.getElementById('bloco-cadastro').classList.remove('hidden');
+      if (modo === 'recuperar') document.getElementById('bloco-recuperar').classList.remove('hidden');
     }
 
-    // 2. Navegação entre Módulos
+    function mostrarAlertaLogin(msg, tipo = 'erro') {
+      const el = document.getElementById('login-alerta');
+      el.textContent = msg;
+      el.className = tipo === 'erro' 
+        ? "mb-4 p-3 rounded text-xs font-medium bg-red-950 text-red-300 border border-red-800 block" 
+        : "mb-4 p-3 rounded text-xs font-medium bg-emerald-950 text-emerald-300 border border-emerald-800 block";
+    }
+
+    function esconderAlertaLogin() {
+      document.getElementById('login-alerta').classList.add('hidden');
+    }
+
+    // --- CADASTRO (ID + E-MAIL + SENHA) ---
+    async function realizarCadastro() {
+      const id = document.getElementById('cad-auth-id').value.trim();
+      const email = document.getElementById('cad-auth-email').value.trim();
+      const senha = document.getElementById('cad-auth-senha').value.trim();
+
+      if (!id || !email || !senha) return mostrarAlertaLogin('Preencha todos os campos.');
+      if (senha.length < 6) return mostrarAlertaLogin('A senha precisa ter pelo menos 6 caracteres.');
+
+      const btn = document.getElementById('btn-cad-auth');
+      btn.disabled = true;
+      btn.textContent = "Cadastrando...";
+
+      try {
+        // Verificar se ID já existe
+        const checagemId = await db.collection("usuarios").doc(id).get();
+        if (checagemId.exists) {
+          btn.disabled = false;
+          btn.textContent = "Enviar Cadastro para Aprovação";
+          return mostrarAlertaLogin('Este Passaporte (ID) já possui cadastro.');
+        }
+
+        // Criar usuário no Firebase Auth
+        const userCred = await auth.createUserWithEmailAndPassword(email, senha);
+
+        // Gravar no Firestore com status PENDENTE
+        await db.collection("usuarios").doc(id).set({
+          passaporte: id,
+          email: email,
+          uid: userCred.user.uid,
+          status: "PENDENTE",
+          cargo: "AGENTE",
+          criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // Desconectar sessão imediata (pois precisa de aprovação)
+        await auth.signOut();
+
+        alternarVisaoAuth('login');
+        mostrarAlertaLogin('Cadastro enviado com sucesso! Aguarde a aprovação do Administrador.', 'sucesso');
+      } catch (err) {
+        mostrarAlertaLogin(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Enviar Cadastro para Aprovação";
+      }
+    }
+
+    // --- LOGIN (ID + SENHA) ---
+    async function realizarLogin() {
+      const id = document.getElementById('login-id').value.trim();
+      const senha = document.getElementById('login-senha').value.trim();
+
+      if (!id || !senha) return mostrarAlertaLogin('Informe o Passaporte (ID) e a senha.');
+
+      const btn = document.getElementById('btn-login');
+      btn.disabled = true;
+      btn.textContent = "Autenticando...";
+
+      try {
+        // Buscar o e-mail atrelado ao ID no Firestore
+        const docUser = await db.collection("usuarios").doc(id).get();
+        if (!docUser.exists) {
+          btn.disabled = false;
+          btn.textContent = "Acessar Terminal";
+          return mostrarAlertaLogin('Passaporte (ID) não localizado nos arquivos.');
+        }
+
+        const dadosUser = docUser.data();
+
+        // Checar se foi aprovado por admin
+        if (dadosUser.status !== 'APROVADO') {
+          btn.disabled = false;
+          btn.textContent = "Acessar Terminal";
+          return mostrarAlertaLogin('Acesso pendente: Sua conta aguarda aprovação de um Administrador.');
+        }
+
+        // Autenticar com o e-mail vinculado
+        await auth.signInWithEmailAndPassword(dadosUser.email, senha);
+
+      } catch (err) {
+        mostrarAlertaLogin('Falha no login: Senha incorreta ou erro no servidor.');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Acessar Terminal";
+      }
+    }
+
+    // --- RECUPERAÇÃO DE SENHA POR E-MAIL ---
+    async function recuperarSenha() {
+      const termo = document.getElementById('rec-termo').value.trim();
+      if (!termo) return mostrarAlertaLogin('Digite seu Passaporte (ID) ou E-mail.');
+
+      let emailDestino = termo;
+
+      try {
+        // Se for um ID numérico, busca o e-mail no banco
+        if (!termo.includes('@')) {
+          const docUser = await db.collection("usuarios").doc(termo).get();
+          if (!docUser.exists) return mostrarAlertaLogin('Passaporte (ID) não encontrado.');
+          emailDestino = docUser.data().email;
+        }
+
+        await auth.sendPasswordResetEmail(emailDestino);
+        mostrarAlertaLogin(`Link de redefinição enviado para o e-mail: ${emailDestino}`, 'sucesso');
+      } catch (err) {
+        mostrarAlertaLogin('Erro ao enviar e-mail: ' + err.message);
+      }
+    }
+
+    // --- MONITOR DE SESSÃO DO FIREBASE ---
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // Obter dados do Firestore através do UID
+        const q = await db.collection("usuarios").where("uid", "==", user.uid).limit(1).get();
+        if (!q.empty) {
+          const dados = q.docs[0].data();
+          
+          if (dados.status !== 'APROVADO') {
+            await auth.signOut();
+            return;
+          }
+
+          usuarioLogado = dados;
+          document.getElementById('top-usuario-cargo').textContent = dados.cargo || 'Agente';
+          document.getElementById('top-usuario-id').textContent = `ID: ${dados.passaporte}`;
+          document.getElementById('tela-login').classList.add('hidden');
+
+          // Exibe aba admin se for cargo superior
+          if (dados.cargo === 'ADMIN' || dados.cargo === 'DELEGADO_GERAL') {
+            document.getElementById('btn-mod-admin').classList.remove('hidden');
+            carregarUsuariosPendentes();
+          }
+
+          carregarRecentes();
+        }
+      } else {
+        usuarioLogado = null;
+        document.getElementById('tela-login').classList.remove('hidden');
+      }
+    });
+
+    async function deslogar() {
+      await auth.signOut();
+    }
+
+    // --- PAINEL DE ADMINISTRAÇÃO: APROVAÇÕES E RESET ---
+    function carregarUsuariosPendentes() {
+      db.collection("usuarios").where("status", "==", "PENDENTE").onSnapshot((snap) => {
+        const tbody = document.getElementById('tabela-pendentes');
+        if (snap.empty) {
+          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = "";
+        snap.forEach((doc) => {
+          const u = doc.data();
+          tbody.innerHTML += `
+            <tr class="hover:bg-slate-950/40">
+              <td class="p-3 text-amber-500 font-bold">${u.passaporte}</td>
+              <td class="p-3 font-sans text-slate-300">${u.email}</td>
+              <td class="p-3"><span class="bg-amber-950 text-amber-400 border border-amber-800 text-[10px] px-2 py-0.5 rounded font-sans">PENDENTE</span></td>
+              <td class="p-3 text-right">
+                <button onclick="aprovarUsuario('${u.passaporte}')" class="bg-emerald-600 hover:bg-emerald-500 text-black px-2.5 py-1 rounded text-[11px] font-bold font-sans uppercase">Aprovar</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+    }
+
+    async function aprovarUsuario(passaporte) {
+      if (!confirm(`Deseja aprovar o operador do Passaporte ${passaporte}?`)) return;
+      try {
+        await db.collection("usuarios").doc(passaporte).update({
+          status: "APROVADO",
+          aprovadoPor: usuarioLogado ? usuarioLogado.passaporte : "ADMIN"
+        });
+        alert(`Passaporte ${passaporte} aprovado com sucesso!`);
+      } catch (err) {
+        alert("Erro ao aprovar: " + err.message);
+      }
+    }
+
+    async function adminEnviarResetSenha() {
+      const passaporte = document.getElementById('admin-reset-id').value.trim();
+      if (!passaporte) return alert('Informe o Passaporte.');
+
+      try {
+        const docUser = await db.collection("usuarios").doc(passaporte).get();
+        if (!docUser.exists) return alert('Usuário não encontrado.');
+
+        const email = docUser.data().email;
+        await auth.sendPasswordResetEmail(email);
+        alert(`Link de redefinição enviado com sucesso para ${email}!`);
+        document.getElementById('admin-reset-id').value = '';
+      } catch (err) {
+        alert("Erro ao redefinir: " + err.message);
+      }
+    }
+
+    // --- NAVEGAÇÃO DE MÓDULOS ---
     function trocarModulo(modulo) {
-      const modulos = ['consulta', 'inqueritos', 'operacoes', 'auditoria'];
+      const modulos = ['consulta', 'inqueritos', 'operacoes', 'auditoria', 'admin'];
       modulos.forEach(m => {
-        document.getElementById(`modulo-${m}`).classList.add('hidden');
+        const el = document.getElementById(`modulo-${m}`);
+        if (el) el.classList.add('hidden');
         const btn = document.getElementById(`btn-mod-${m}`);
-        btn.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200";
+        if (btn) btn.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200";
       });
 
       document.getElementById(`modulo-${modulo}`).classList.remove('hidden');
@@ -274,7 +633,7 @@
       btnAtivo.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition bg-amber-600/10 text-amber-500 border-l-2 border-amber-500";
     }
 
-    // 3. Controle do Modal
+    // --- MODAL DE CADASTRO (CIDADÃO / VEÍCULO) ---
     function abrirModalCadastro() {
       document.getElementById('modal-cadastro').classList.remove('hidden');
       document.getElementById('modal-cadastro').classList.add('flex');
@@ -296,9 +655,9 @@
       }
     }
 
-    // 4. Gravação de Dados no Firestore com Log de Auditoria
     async function salvarRegistro() {
       const tipo = document.getElementById('cad-tipo').value;
+      const agenteId = usuarioLogado ? usuarioLogado.passaporte : "DPF";
 
       try {
         if (tipo === 'cidadao') {
@@ -318,7 +677,7 @@
           await db.collection("auditoria").add({
             acao: "CADASTRO_CIDADAO",
             alvo: cpf,
-            agente: "DPF-001",
+            agente: agenteId,
             data: firebase.firestore.FieldValue.serverTimestamp()
           });
 
@@ -339,19 +698,17 @@
           await db.collection("auditoria").add({
             acao: "CADASTRO_VEICULO",
             alvo: placa,
-            agente: "DPF-001",
+            agente: agenteId,
             data: firebase.firestore.FieldValue.serverTimestamp()
           });
         }
 
         fecharModalCadastro();
-        carregarRecentes();
       } catch (err) {
         alert("Erro ao gravar: " + err.message);
       }
     }
 
-    // 5. Consulta Unificada
     async function executarConsulta() {
       const termo = document.getElementById('input-busca').value.trim();
       const areaResultado = document.getElementById('resultado-pesquisa');
@@ -366,11 +723,10 @@
         await db.collection("auditoria").add({
           acao: "CONSULTA",
           alvo: termo,
-          agente: "DPF-001",
+          agente: usuarioLogado ? usuarioLogado.passaporte : "DPF",
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // Consulta Cidadão por CPF
         let docSnap = await db.collection("cidadaos").doc(termo).get();
 
         if (docSnap.exists) {
@@ -398,7 +754,6 @@
           return;
         }
 
-        // Consulta Veículo por Placa
         docSnap = await db.collection("veiculos").doc(termo.toUpperCase()).get();
 
         if (docSnap.exists) {
@@ -429,10 +784,8 @@
       }
     }
 
-    // 6. Carregar Registros Recentes em Tempo Real
     function carregarRecentes() {
       const tabela = document.getElementById('tabela-recentes');
-
       db.collection("cidadaos").limit(5).onSnapshot((snapshot) => {
         if (snapshot.empty) {
           tabela.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhum cidadão registrado ainda. Clique em "+ Novo Cadastro".</td></tr>`;
@@ -462,9 +815,6 @@
         });
       });
     }
-
-    // Inicialização
-    carregarRecentes();
   </script>
 </body>
 </html>
