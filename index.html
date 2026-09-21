@@ -81,8 +81,13 @@
         </div>
       </div>
 
-      <!-- Formulário: Cadastro (ID + Senha + Email) -->
+      <!-- Formulário: Cadastro (Nome + ID + Senha + Email) -->
       <div id="bloco-cadastro" class="space-y-4 hidden">
+        <div>
+          <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Nome Completo / Operacional</label>
+          <input id="cad-auth-nome" type="text" placeholder="Ex: Carlos Eduardo Silva" 
+            class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
         <div>
           <label class="block text-slate-400 text-xs uppercase tracking-wider mb-1">Passaporte (ID no Servidor)</label>
           <input id="cad-auth-id" type="text" placeholder="Ex: 1024" 
@@ -99,7 +104,7 @@
             class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-amber-500" />
         </div>
 
-        <p class="text-[11px] text-slate-500">A conta passará por aprovação de um Administrador antes do acesso ser liberado.</p>
+        <p class="text-[11px] text-slate-500">A conta passará por aprovação da Direção-Geral antes do acesso ser liberado.</p>
 
         <button onclick="realizarCadastro()" id="btn-cad-auth" class="w-full bg-amber-600 hover:bg-amber-500 text-black font-bold uppercase py-2.5 rounded text-xs tracking-wider transition">
           Enviar Cadastro para Aprovação
@@ -155,8 +160,12 @@
     <!-- Indicador de Operador e Sair -->
     <div class="flex items-center gap-4">
       <div class="text-right border-r border-slate-800 pr-4">
-        <p id="top-usuario-cargo" class="text-xs font-semibold text-slate-200">Agente</p>
-        <p id="top-usuario-id" class="text-[10px] text-amber-500 font-mono">ID: -</p>
+        <p id="top-usuario-nome" class="text-xs font-bold text-slate-100">-</p>
+        <div class="flex items-center justify-end gap-2">
+          <span id="top-usuario-cargo" class="text-[11px] text-amber-400 font-medium">Agente</span>
+          <span class="text-slate-600">•</span>
+          <span id="top-usuario-id" class="text-[10px] text-slate-400 font-mono">ID: -</span>
+        </div>
       </div>
       <button onclick="deslogar()" class="text-xs bg-red-950 hover:bg-red-900 border border-red-800 text-red-300 px-3 py-1 rounded transition uppercase">
         Sair
@@ -195,7 +204,7 @@
 
       <div class="bg-slate-950/60 p-3 rounded border border-slate-800/80 text-[11px] text-slate-500">
         <p class="text-amber-500 font-bold mb-1">AVISO DE SEGURANÇA</p>
-        Todas as pesquisas deixam registros auditáveis. O uso indevido constitui infração correcional.
+        Todas as pesquisas deixam registos auditáveis. O uso indevido constitui infração correcional.
       </div>
     </aside>
 
@@ -229,7 +238,7 @@
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Registros Recentes no Sistema</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Registos Recentes no Sistema</h2>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
@@ -243,7 +252,7 @@
               </thead>
               <tbody id="tabela-recentes" class="divide-y divide-slate-800 font-mono">
                 <tr>
-                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">Carregando registros...</td>
+                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">A carregar registos...</td>
                 </tr>
               </tbody>
             </table>
@@ -277,21 +286,22 @@
       <section id="modulo-admin" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500 mb-2">Aprovações de Credenciamento Pendentes</h2>
-          <p class="text-xs text-slate-400 mb-4">Autorize novos agentes ou escrivães a utilizarem o sistema.</p>
+          <p class="text-xs text-slate-400 mb-4">Autorize novos agentes e investigadores a utilizarem o sistema.</p>
           
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
                 <tr>
                   <th class="p-3">Passaporte (ID)</th>
-                  <th class="p-3">E-mail Cadastrado</th>
+                  <th class="p-3">Nome do Operador</th>
+                  <th class="p-3">E-mail</th>
                   <th class="p-3">Status</th>
                   <th class="p-3 text-right">Ação</th>
                 </tr>
               </thead>
               <tbody id="tabela-pendentes" class="divide-y divide-slate-800 font-mono">
                 <tr>
-                  <td colspan="4" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente.</td>
+                  <td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente no momento.</td>
                 </tr>
               </tbody>
             </table>
@@ -299,7 +309,7 @@
         </div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
-          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Redefinição de Senha (Administrador)</h2>
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">Redefinição de Senha (Direção-Geral)</h2>
           <p class="text-xs text-slate-400 mb-4">Envie um e-mail com link de redefinição para o operador pelo Passaporte dele.</p>
           
           <div class="flex gap-3 max-w-md">
@@ -325,7 +335,7 @@
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block text-slate-400 mb-1">Tipo de Registro</label>
+          <label class="block text-slate-400 mb-1">Tipo de Registo</label>
           <select id="cad-tipo" onchange="alternarCamposCadastro()" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500">
             <option value="cidadao">Cidadão (CPF)</option>
             <option value="veiculo">Veículo / Aeronave / Embarcação</option>
@@ -392,7 +402,16 @@
     let usuarioLogado = null;
     let cadastrandoNovo = false;
 
-    // --- FUNÇÃO PARA TRADUZIR ERROS DO FIREBASE PARA PORTUGUÊS CLARO ---
+    // --- FORMATAÇÃO DE CARGO VISUAL ---
+    function formatarCargo(cargo) {
+      if (cargo === 'DIRETOR_GERAL' || cargo === 'ADMIN') return 'Diretor-Geral';
+      if (cargo === 'DELEGADO') return 'Delegado Federal';
+      if (cargo === 'PERITO') return 'Perito Federal';
+      if (cargo === 'ESCRIVAO') return 'Escrivão Federal';
+      return 'Agente Federal';
+    }
+
+    // --- TRADUTOR DE ERROS ---
     function traduzirErro(erro) {
       const codigo = erro.code || "";
       const mensagem = erro.message || "";
@@ -448,14 +467,15 @@
       document.getElementById('login-alerta').classList.add('hidden');
     }
 
-    // --- CADASTRO BLINDADO (ID + EMAIL + SENHA) ---
+    // --- CADASTRO (NOME + ID + EMAIL + SENHA) ---
     async function realizarCadastro() {
+      const nome = document.getElementById('cad-auth-nome').value.trim();
       const id = document.getElementById('cad-auth-id').value.trim();
       const email = document.getElementById('cad-auth-email').value.trim();
       const senha = document.getElementById('cad-auth-senha').value.trim();
       const btn = document.getElementById('btn-cad-auth');
 
-      if (!id || !email || !senha) {
+      if (!nome || !id || !email || !senha) {
         return mostrarAlertaLogin('Por favor, preencha todos os campos obrigatórios.');
       }
       if (senha.length < 6) {
@@ -463,7 +483,7 @@
       }
 
       btn.disabled = true;
-      btn.textContent = "Processando solicitação...";
+      btn.textContent = "A processar solicitação...";
       cadastrandoNovo = true;
 
       try {
@@ -475,6 +495,7 @@
         const userCred = await auth.createUserWithEmailAndPassword(email, senha);
 
         await db.collection("usuarios").doc(id).set({
+          nome: nome,
           passaporte: id,
           email: email,
           uid: userCred.user.uid,
@@ -485,12 +506,13 @@
 
         await auth.signOut();
 
+        document.getElementById('cad-auth-nome').value = '';
         document.getElementById('cad-auth-id').value = '';
         document.getElementById('cad-auth-email').value = '';
         document.getElementById('cad-auth-senha').value = '';
 
         alternarVisaoAuth('login');
-        mostrarAlertaLogin(`Solicitação enviada com sucesso! O credenciamento para o Passaporte ${id} está aguardando a liberação de um Administrador.`, 'sucesso');
+        mostrarAlertaLogin(`Solicitação enviada com sucesso! O credenciamento do operador ${nome} (ID: ${id}) está a aguardar a aprovação do Diretor-Geral.`, 'sucesso');
 
       } catch (err) {
         mostrarAlertaLogin(traduzirErro(err), 'erro');
@@ -510,18 +532,18 @@
       if (!id || !senha) return mostrarAlertaLogin('Informe o seu Passaporte (ID) e a sua senha.');
 
       btn.disabled = true;
-      btn.textContent = "Validando acesso...";
+      btn.textContent = "A validar acesso...";
 
       try {
         const docUser = await db.collection("usuarios").doc(id).get();
         if (!docUser.exists) {
-          throw new Error('Passaporte (ID) não encontrado em nosso banco de dados.');
+          throw new Error('Passaporte (ID) não encontrado em nossos registos.');
         }
 
         const dadosUser = docUser.data();
 
         if (dadosUser.status !== 'APROVADO') {
-          throw new Error('Credenciamento pendente: Sua conta ainda está aguardando a liberação de um Administrador.');
+          throw new Error('Credenciamento pendente: A sua conta ainda aguarda a aprovação da Direção-Geral.');
         }
 
         await auth.signInWithEmailAndPassword(dadosUser.email, senha);
@@ -534,7 +556,7 @@
       }
     }
 
-    // --- RECUPERAÇÃO DE SENHA POR E-MAIL ---
+    // --- RECUPERAÇÃO DE SENHA ---
     async function recuperarSenha() {
       const termo = document.getElementById('rec-termo').value.trim();
       if (!termo) return mostrarAlertaLogin('Informe o seu Passaporte (ID) ou o e-mail cadastrado.');
@@ -544,7 +566,7 @@
       try {
         if (!termo.includes('@')) {
           const docUser = await db.collection("usuarios").doc(termo).get();
-          if (!docUser.exists) return mostrarAlertaLogin('Passaporte (ID) não encontrado nos registros.');
+          if (!docUser.exists) return mostrarAlertaLogin('Passaporte (ID) não encontrado nos registos.');
           emailDestino = docUser.data().email;
         }
 
@@ -570,11 +592,12 @@
           }
 
           usuarioLogado = dados;
-          document.getElementById('top-usuario-cargo').textContent = dados.cargo || 'Agente';
+          document.getElementById('top-usuario-nome').textContent = dados.nome || 'Operador Federal';
+          document.getElementById('top-usuario-cargo').textContent = formatarCargo(dados.cargo);
           document.getElementById('top-usuario-id').textContent = `ID: ${dados.passaporte}`;
           document.getElementById('tela-login').classList.add('hidden');
 
-          if (dados.cargo === 'ADMIN' || dados.cargo === 'DELEGADO_GERAL') {
+          if (dados.cargo === 'DIRETOR_GERAL' || dados.cargo === 'ADMIN') {
             document.getElementById('btn-mod-admin').classList.remove('hidden');
             carregarUsuariosPendentes();
           }
@@ -591,12 +614,12 @@
       await auth.signOut();
     }
 
-    // --- PAINEL DE ADMINISTRAÇÃO ---
+    // --- GESTÃO DE ACESSOS (DIREÇÃO-GERAL) ---
     function carregarUsuariosPendentes() {
       db.collection("usuarios").where("status", "==", "PENDENTE").onSnapshot((snap) => {
         const tbody = document.getElementById('tabela-pendentes');
         if (snap.empty) {
-          tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente no momento.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhuma solicitação pendente no momento.</td></tr>`;
           return;
         }
 
@@ -606,7 +629,8 @@
           tbody.innerHTML += `
             <tr class="hover:bg-slate-950/40">
               <td class="p-3 text-amber-500 font-bold">${u.passaporte}</td>
-              <td class="p-3 font-sans text-slate-300">${u.email}</td>
+              <td class="p-3 font-sans font-medium text-slate-200">${u.nome || 'Não informado'}</td>
+              <td class="p-3 font-sans text-slate-400">${u.email}</td>
               <td class="p-3"><span class="bg-amber-950 text-amber-400 border border-amber-800 text-[10px] px-2 py-0.5 rounded font-sans">PENDENTE</span></td>
               <td class="p-3 text-right">
                 <button onclick="aprovarUsuario('${u.passaporte}')" class="bg-emerald-600 hover:bg-emerald-500 text-black px-2.5 py-1 rounded text-[11px] font-bold font-sans uppercase">Aprovar</button>
@@ -622,7 +646,7 @@
       try {
         await db.collection("usuarios").doc(passaporte).update({
           status: "APROVADO",
-          aprovadoPor: usuarioLogado ? usuarioLogado.passaporte : "ADMIN"
+          aprovadoPor: usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "DIRETOR_GERAL"
         });
         alert(`Passaporte ${passaporte} aprovado com sucesso!`);
       } catch (err) {
@@ -686,7 +710,7 @@
 
     async function salvarRegistro() {
       const tipo = document.getElementById('cad-tipo').value;
-      const agenteId = usuarioLogado ? usuarioLogado.passaporte : "DPF";
+      const agenteId = usuarioLogado ? `${usuarioLogado.nome} (ID: ${usuarioLogado.passaporte})` : "DPF";
 
       try {
         if (tipo === 'cidadao') {
@@ -745,14 +769,14 @@
 
       if (!termo) return;
 
-      conteudoResultado.innerHTML = "Buscando nos arquivos federais...";
+      conteudoResultado.innerHTML = "A pesquisar nos arquivos federais...";
       areaResultado.classList.remove('hidden');
 
       try {
         await db.collection("auditoria").add({
           acao: "CONSULTA",
           alvo: termo,
-          agente: usuarioLogado ? usuarioLogado.passaporte : "DPF",
+          agente: usuarioLogado ? `${usuarioLogado.nome} (ID: ${usuarioLogado.passaporte})` : "DPF",
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
@@ -806,7 +830,7 @@
           return;
         }
 
-        conteudoResultado.innerHTML = `<span class="text-red-400">Nenhum registro encontrado para "${termo}".</span>`;
+        conteudoResultado.innerHTML = `<span class="text-red-400">Nenhum registo encontrado para "${termo}".</span>`;
 
       } catch (err) {
         conteudoResultado.innerHTML = `<span class="text-red-400">Erro na consulta: ${traduzirErro(err)}</span>`;
@@ -817,7 +841,7 @@
       const tabela = document.getElementById('tabela-recentes');
       db.collection("cidadaos").limit(5).onSnapshot((snapshot) => {
         if (snapshot.empty) {
-          tabela.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhum cidadão registrado ainda. Clique em "+ Novo Cadastro".</td></tr>`;
+          tabela.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-slate-600 font-sans">Nenhum cidadão registado ainda. Clique em "+ Novo Cadastro".</td></tr>`;
           return;
         }
 
