@@ -33,17 +33,17 @@
       background: #334155;
     }
 
-    /* REGRAS DE IMPRESSÃO ESTITAS: ELIMINAÇÃO DE PÁGINAS EM BRANCO */
+    /* CONTROLE RIGOROSO DE PÁGINAS PARA IMPRESSÃO / PDF */
     @page {
       size: A4 portrait;
-      margin: 8mm;
+      margin: 10mm;
     }
 
     @media print {
       html, body {
-        height: auto !important;
         background: #ffffff !important;
         color: #000000 !important;
+        height: auto !important;
         overflow: visible !important;
       }
       body * {
@@ -62,9 +62,6 @@
         background: #ffffff !important;
         color: #111827 !important;
         display: block !important;
-        page-break-after: avoid !important;
-        page-break-before: avoid !important;
-        break-inside: avoid !important;
       }
     }
   </style>
@@ -77,7 +74,7 @@
       
       <div class="flex flex-col items-center text-center mb-6">
         <img 
-          src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Pol%C3%ADcia_Federal.svg/800px-Pol%C3%ADcia_Federal.svg.png" 
+          src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
           alt="Brasão Polícia Federal" 
           class="h-20 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] mb-3"
         />
@@ -177,7 +174,7 @@
   <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <img 
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Pol%C3%ADcia_Federal.svg/800px-Pol%C3%ADcia_Federal.svg.png" 
+        src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
         alt="Brasão Polícia Federal" 
         class="h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
       />
@@ -1920,7 +1917,7 @@
       }
     }
 
-    // --- REFORMULAÇÃO DA EXPORTAÇÃO DO DOSSIÊ POLICIAL (SEM PÁGINAS EM BRANCO + ASSINATURA ELETRÔNICA) ---
+    // --- EXPORTAR DOSSIÊ POLICIAL (PDF COM NOME AUTOMÁTICO POR PASSAPORTE) ---
     function exportarDossiePDF(passaporte, dadosEncoded, veiculosEncoded, bensEncoded) {
       const data = JSON.parse(decodeURIComponent(dadosEncoded));
       const veiculos = JSON.parse(decodeURIComponent(veiculosEncoded));
@@ -1931,18 +1928,21 @@
       const cargoAutoridade = usuarioLogado ? formatarCargo(usuarioLogado.cargo) : 'Agente Federal';
       const idAutoridade = usuarioLogado ? usuarioLogado.passaporte : '0000';
 
-      // Código criptográfico simulado da assinatura digital
       const codigoHash = "BR-DPF-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      // Altera o título da página temporariamente para forçar o nome do PDF sem sobreescrever
+      const tituloOriginal = document.title;
+      document.title = `Dossie_Policial_ID_${passaporte}`;
 
       const folha = document.getElementById('folha-impressao-dossie');
 
       folha.innerHTML = `
-        <div style="font-family: Arial, Helvetica, sans-serif; color: #111827; max-width: 800px; margin: 0 auto; line-height: 1.35;">
+        <div style="font-family: Arial, Helvetica, sans-serif; color: #111827; max-width: 800px; margin: 0 auto; line-height: 1.35; padding: 15px;">
           
-          <!-- Cabeçalho Oficial com Brasão de Alta Qualidade -->
+          <!-- Cabeçalho Oficial com Logo Garantido -->
           <div style="text-align: center; border-bottom: 2px solid #b45309; padding-bottom: 12px; margin-bottom: 15px;">
             <img 
-              src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Pol%C3%ADcia_Federal.svg/800px-Pol%C3%ADcia_Federal.svg.png" 
+              src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
               style="height: 65px; width: auto; margin: 0 auto 6px auto; display: block;" 
             />
             <h2 style="margin: 0; font-size: 13px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; color: #374151;">Ministério da Justiça e Segurança Pública</h2>
@@ -2010,7 +2010,7 @@
             `).join('') : '<p style="font-size: 10px; color: #6b7280; font-style: italic; margin: 0;">Sem registros de ocorrências nos arquivos federais.</p>'}
           </div>
 
-          <!-- CARIMBO DE ASSINATURA ELETRÔNICA ICP-BRASIL / GOV -->
+          <!-- CARIMBO DE ASSINATURA ELETRÔNICA -->
           <div style="border: 1.5px dashed #059669; border-radius: 6px; padding: 10px 14px; background: #f0fdf4; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div>
               <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
@@ -2025,15 +2025,19 @@
             <div style="text-align: right; border-left: 1px solid #a7f3d0; padding-left: 14px;">
               <p style="margin: 0; font-size: 9px; text-transform: uppercase; color: #065f46; font-weight: bold;">Autenticação Digital</p>
               <p style="margin: 2px 0; font-family: monospace; font-size: 10px; font-weight: bold; color: #111827;">${codigoHash}</p>
-              <p style="margin: 0; font-size: 8.5px; color: #6b7280;">Conforme padrão do Sistema Integrado SISINT</p>
+              <p style="margin: 0; font-size: 8.5px; color: #6b7280;">Verificação de autenticidade validada no Módulo de Auditoria do SISINT</p>
             </div>
           </div>
 
         </div>
       `;
 
-      // Dispara a impressão imediatamente
       window.print();
+
+      // Restaura o título original após a impressão
+      setTimeout(() => {
+        document.title = tituloOriginal;
+      }, 1000);
     }
 
     // --- CONSULTA UNIFICADA ---
@@ -2112,7 +2116,6 @@
             `;
           }
 
-          // Bloco do Processo de Reabilitação (se houver)
           let processoLimpezaHtml = "";
           if (procLimpeza) {
             const procDadosJson = encodeURIComponent(JSON.stringify(procLimpeza));
@@ -2132,7 +2135,6 @@
             `;
           }
 
-          // Consulta de IPLs Vinculados
           let iplsHtml = `<p class="text-xs text-slate-500 italic py-1">Nenhum inquérito policial (IPL) instaurado para este passaporte.</p>`;
           try {
             const snapIpls = await db.collection("inqueritos").where("suspeitos", "array-contains", pass).get();
