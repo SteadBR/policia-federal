@@ -1873,7 +1873,6 @@
           </span>
         `).join('') || '<span class="text-xs text-slate-500 italic">Nenhum investigador adicional na equipe.</span>';
 
-        // Provas com botão de exportar peça isolada
         let provasHtml = (ipl.provas || []).map((p, idx) => {
           const provaJson = encodeURIComponent(JSON.stringify(p));
           return `
@@ -1893,7 +1892,6 @@
           `;
         }).join('') || '<p class="text-xs text-slate-500 italic">Nenhuma prova anexada aos autos.</p>';
 
-        // Depoimentos com botão de exportar peça isolada
         let depoimentosHtml = (ipl.depoimentos || []).map((d, idx) => {
           const depJson = encodeURIComponent(JSON.stringify(d));
           return `
@@ -2087,7 +2085,7 @@
                     <input id="ipl-mandado-alvo" type="text" placeholder="Passaporte do Alvo (ID)..." class="bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
                   </div>
                   <input id="ipl-mandado-motivo" type="text" placeholder="Fundamentação legal para expedição..." class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500" />
-                  <button onclick="solicitarMandadoIPL('${protocolo}')" class="bg-red-600 hover:bg-red-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">Expedir Mandado (Atualiza Ficha)</button>
+                  <button onclick="solicitarMandadoIPL('${protocolo}')" class="bg-red-600 hover:bg-red-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">Expedir Mandado (Valida Ficha e Vincula IPL)</button>
                 </div>
               ` : ''}
               <div class="space-y-2">${mandadosHtml}</div>
@@ -2106,7 +2104,7 @@
       }
     }
 
-    // --- AÇÕES DO IPL ---
+    // --- AÇÕES DO IPL (Com validação de Ficha Cadastrada para Mandados) ---
     async function adicionarInvestigadorIPL(protocolo) {
       const idPolicial = document.getElementById('ipl-novo-investigador-id').value.trim();
       if (!idPolicial) return alert("Informe o Passaporte do policial.");
@@ -2300,6 +2298,7 @@
       }
     }
 
+    // --- EXPEDIR MANDADO COM VALIDAÇÃO DE FICHA CADASTRADA ---
     async function solicitarMandadoIPL(protocolo) {
       if (!ehDelegadoOuSuperior()) return alert("Apenas Delegados podem expedir mandados judiciais.");
       const tipo = document.getElementById('ipl-mandado-tipo').value;
@@ -2307,9 +2306,15 @@
       const motivo = document.getElementById('ipl-mandado-motivo').value.trim();
 
       if (!alvoPassaporte || !motivo) return alert("Informe o Passaporte do alvo e a fundamentação.");
-      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
 
       try {
+        // Validação estrita: Verifica se o cidadão possui ficha cadastrada
+        const docCidadao = await db.collection("cidadaos").doc(alvoPassaporte).get();
+        if (!docCidadao.exists) {
+          return alert(`ERRO DE EXPEDIÇÃO: O Passaporte ID "${alvoPassaporte}" não possui ficha de cidadão cadastrada no sistema.\n\nÉ proibido expedir mandados para indivíduos sem cadastro prévio.`);
+        }
+
+        const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
         const idMandado = Math.random().toString(36).substring(2, 9);
         const novoMandado = {
           id: idMandado,
@@ -2325,7 +2330,7 @@
           mandados: firebase.firestore.FieldValue.arrayUnion(novoMandado),
           historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
             data: new Date().toISOString(),
-            texto: `Mandado de ${formatarMandado(tipo)} expedido contra o ID ${alvoPassaporte}.`,
+            texto: `Mandado de ${formatarMandado(tipo)} expedido contra o ID ${alvoPassaporte} (Vinculado ao IPL ${protocolo}).`,
             agente: autorNome
           })
         });
