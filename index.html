@@ -33,24 +33,38 @@
       background: #334155;
     }
 
-    /* Regras de impressão para o Dossiê Policial */
+    /* REGRAS DE IMPRESSÃO ESTITAS: ELIMINAÇÃO DE PÁGINAS EM BRANCO */
+    @page {
+      size: A4 portrait;
+      margin: 8mm;
+    }
+
     @media print {
+      html, body {
+        height: auto !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        overflow: visible !important;
+      }
       body * {
-        visibility: hidden;
+        visibility: hidden !important;
       }
       #folha-impressao-dossie, #folha-impressao-dossie * {
-        visibility: visible;
+        visibility: visible !important;
       }
       #folha-impressao-dossie {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 20px;
-        background: white !important;
-        color: black !important;
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #111827 !important;
         display: block !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+        break-inside: avoid !important;
       }
     }
   </style>
@@ -63,7 +77,7 @@
       
       <div class="flex flex-col items-center text-center mb-6">
         <img 
-          src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
+          src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Pol%C3%ADcia_Federal.svg/800px-Pol%C3%ADcia_Federal.svg.png" 
           alt="Brasão Polícia Federal" 
           class="h-20 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)] mb-3"
         />
@@ -163,7 +177,7 @@
   <header class="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <img 
-        src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Pol%C3%ADcia_Federal.svg/800px-Pol%C3%ADcia_Federal.svg.png" 
         alt="Brasão Polícia Federal" 
         class="h-11 w-auto object-contain drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]"
       />
@@ -827,7 +841,7 @@
     </div>
   </div>
 
-  <!-- ================= ELEMENTO INVISÍVEL PARA IMPRESSÃO DE DOSSIÊ ================= -->
+  <!-- ================= ELEMENTO PARA IMPRESSÃO DE DOSSIÊ ================= -->
   <div id="folha-impressao-dossie" class="hidden"></div>
 
   <!-- ================= JAVASCRIPT & LÓGICA ================= -->
@@ -879,7 +893,6 @@
       return 'Sem Registro / Porte';
     }
 
-    // Regra das Cores de Periculosidade: Baixo (Verde), Atenção (Amarelo), Alto (Roxo), Crítico (Vermelho)
     function badgePericulosidade(nivel) {
       if (nivel === 'CRITICO') {
         return `<span class="bg-red-950 text-red-400 border border-red-800 px-2 py-0.5 rounded text-[11px] font-bold">CRÍTICO (COT/GPI)</span>`;
@@ -1907,106 +1920,123 @@
       }
     }
 
-    // --- EXPORTAR DOSSIÊ POLICIAL (PDF / IMPRESSÃO) ---
+    // --- REFORMULAÇÃO DA EXPORTAÇÃO DO DOSSIÊ POLICIAL (SEM PÁGINAS EM BRANCO + ASSINATURA ELETRÔNICA) ---
     function exportarDossiePDF(passaporte, dadosEncoded, veiculosEncoded, bensEncoded) {
       const data = JSON.parse(decodeURIComponent(dadosEncoded));
       const veiculos = JSON.parse(decodeURIComponent(veiculosEncoded));
       const bens = JSON.parse(decodeURIComponent(bensEncoded));
       const dataHoraAtual = new Date().toLocaleString('pt-BR');
-      const emitidoPor = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DEPARTAMENTO DE POLÍCIA FEDERAL";
+      
+      const nomeAutoridade = usuarioLogado ? (usuarioLogado.nome || 'Operador Federal') : 'Operador Federal';
+      const cargoAutoridade = usuarioLogado ? formatarCargo(usuarioLogado.cargo) : 'Agente Federal';
+      const idAutoridade = usuarioLogado ? usuarioLogado.passaporte : '0000';
+
+      // Código criptográfico simulado da assinatura digital
+      const codigoHash = "BR-DPF-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
       const folha = document.getElementById('folha-impressao-dossie');
 
       folha.innerHTML = `
-        <div style="font-family: Arial, sans-serif; color: #111827; padding: 20px;">
+        <div style="font-family: Arial, Helvetica, sans-serif; color: #111827; max-width: 800px; margin: 0 auto; line-height: 1.35;">
           
-          <!-- Cabeçalho Oficial -->
-          <div style="text-align: center; border-bottom: 2px solid #b45309; padding-bottom: 15px; margin-bottom: 20px;">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" style="height: 70px; margin: 0 auto 10px auto; display: block;" />
-            <h2 style="margin: 0; font-size: 16px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Ministério da Justiça e Segurança Pública</h2>
-            <h1 style="margin: 3px 0 0 0; font-size: 18px; text-transform: uppercase; font-weight: 900; color: #b45309;">Departamento de Polícia Federal</h1>
-            <p style="margin: 4px 0 0 0; font-size: 11px; color: #4b5563;">SISINT / DPF • Relatório de Inteligência e Ficha Cadastral de Indivíduo</p>
+          <!-- Cabeçalho Oficial com Brasão de Alta Qualidade -->
+          <div style="text-align: center; border-bottom: 2px solid #b45309; padding-bottom: 12px; margin-bottom: 15px;">
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/Pol%C3%ADcia_Federal.svg/800px-Pol%C3%ADcia_Federal.svg.png" 
+              style="height: 65px; width: auto; margin: 0 auto 6px auto; display: block;" 
+            />
+            <h2 style="margin: 0; font-size: 13px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; color: #374151;">Ministério da Justiça e Segurança Pública</h2>
+            <h1 style="margin: 2px 0 0 0; font-size: 16px; text-transform: uppercase; font-weight: 900; color: #b45309; letter-spacing: 0.5px;">Departamento de Polícia Federal</h1>
+            <p style="margin: 2px 0 0 0; font-size: 10px; color: #6b7280; font-weight: bold;">SISINT / DPF • Dossiê de Inteligência e Registro Criminal</p>
           </div>
 
-          <!-- Identificação e Foto -->
-          <div style="display: flex; gap: 20px; margin-bottom: 20px;">
-            <div style="width: 130px; height: 160px; border: 1px solid #9ca3af; text-align: center; overflow: hidden;">
+          <!-- Identificação e Imagem do Suspeito -->
+          <div style="display: flex; gap: 16px; margin-bottom: 14px; align-items: stretch;">
+            <div style="width: 125px; height: 150px; border: 1.5px solid #9ca3af; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
               <img src="${data.fotoUrl || FOTO_PADRAO}" style="width: 100%; height: 100%; object-fit: cover;" />
             </div>
+
             <div style="flex: 1;">
-              <table style="width: 100%; font-size: 12px; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 4px 0; font-weight: bold; width: 140px;">Passaporte (ID):</td>
-                  <td style="padding: 4px 0; font-family: monospace; font-size: 14px;">${passaporte}</td>
+              <table style="width: 100%; font-size: 11px; border-collapse: collapse;">
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                  <td style="padding: 3px 0; font-weight: bold; width: 140px; color: #4b5563;">Passaporte (ID):</td>
+                  <td style="padding: 3px 0; font-family: monospace; font-size: 12px; font-weight: bold; color: #b45309;">${passaporte}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                  <td style="padding: 3px 0; font-weight: bold; color: #4b5563;">Nome Completo:</td>
+                  <td style="padding: 3px 0; font-weight: bold;">${data.nome || 'Não informado'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                  <td style="padding: 3px 0; font-weight: bold; color: #4b5563;">Apelido / Vulgo:</td>
+                  <td style="padding: 3px 0;">${data.apelido || 'Sem vulgo registrado'}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                  <td style="padding: 3px 0; font-weight: bold; color: #4b5563;">Situação Jurídica:</td>
+                  <td style="padding: 3px 0; font-weight: bold; color: ${data.mandado !== 'NENHUM' ? '#b91c1c' : '#047857'};">${formatarMandado(data.mandado)}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                  <td style="padding: 3px 0; font-weight: bold; color: #4b5563;">Porte SINARM:</td>
+                  <td style="padding: 3px 0;">${formatarPorteArma(data.porteArma)}</td>
+                </tr>
+                <tr style="border-bottom: 1px solid #f3f4f6;">
+                  <td style="padding: 3px 0; font-weight: bold; color: #4b5563;">Periculosidade:</td>
+                  <td style="padding: 3px 0; font-weight: bold; text-transform: uppercase;">${data.periculosidade || 'BAIXO'}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 4px 0; font-weight: bold;">Nome Completo:</td>
-                  <td style="padding: 4px 0;">${data.nome || 'Não informado'}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 4px 0; font-weight: bold;">Apelido / Vulgo:</td>
-                  <td style="padding: 4px 0;">${data.apelido || 'Não informado'}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 4px 0; font-weight: bold;">Situação Jurídica:</td>
-                  <td style="padding: 4px 0; font-weight: bold; color: ${data.mandado !== 'NENHUM' ? '#b91c1c' : '#047857'};">${formatarMandado(data.mandado)}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 4px 0; font-weight: bold;">Porte de Arma:</td>
-                  <td style="padding: 4px 0;">${formatarPorteArma(data.porteArma)}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 4px 0; font-weight: bold;">Periculosidade:</td>
-                  <td style="padding: 4px 0; text-transform: uppercase;">${data.periculosidade || 'Baixo Risco'}</td>
-                </tr>
-                <tr>
-                  <td style="padding: 4px 0; font-weight: bold;">Vínculo ORCRIM:</td>
-                  <td style="padding: 4px 0;">${data.faccao ? `${data.faccao} (${data.faccaoCargo || 'Membro'})` : 'Nenhum vínculo catalogado'}</td>
+                  <td style="padding: 3px 0; font-weight: bold; color: #4b5563;">Vínculo ORCRIM:</td>
+                  <td style="padding: 3px 0;">${data.faccao ? `${data.faccao} (${data.faccaoCargo || 'Membro'})` : 'Nenhum vínculo catalogado'}</td>
                 </tr>
               </table>
             </div>
           </div>
 
-          <!-- Bens e Patrimônio Vinculado -->
-          <div style="margin-bottom: 20px;">
-            <h3 style="font-size: 13px; text-transform: uppercase; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; margin-bottom: 8px;">Vínculos Patrimoniais Registrados</h3>
-            <div style="font-size: 11px;">
-              <p style="margin: 2px 0;"><strong>Veículos:</strong> ${veiculos.length ? veiculos.map(v => `${v.modelo} (${v.placa} - Cor:${v.cor})`).join('; ') : 'Nenhum veículo registrado'}</p>
-              <p style="margin: 2px 0;"><strong>Imóveis / Bens:</strong> ${bens.length ? bens.map(b => `${b.tipo} em${b.localizacao}`).join('; ') : 'Nenhum imóvel ou bem registrado'}</p>
+          <!-- Patrimônio Vinculado -->
+          <div style="margin-bottom: 14px; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px 12px; background: #fafafa;">
+            <h3 style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #374151; margin: 0 0 6px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px;">Vínculos Patrimoniais (Veículos & Bens)</h3>
+            <div style="font-size: 10.5px; color: #374151;">
+              <p style="margin: 2px 0;"><strong>Veículos:</strong> ${veiculos.length ? veiculos.map(v => `${v.modelo} (Placa: ${v.placa}, Cor:${v.cor})`).join('; ') : 'Nenhum veículo registrado em seu nome.'}</p>
+              <p style="margin: 2px 0;"><strong>Imóveis / Bens:</strong> ${bens.length ? bens.map(b => `${b.tipo} em${b.localizacao}`).join('; ') : 'Nenhum imóvel ou bem catalogado.'}</p>
             </div>
           </div>
 
-          <!-- Histórico Policial -->
-          <div style="margin-bottom: 30px;">
-            <h3 style="font-size: 13px; text-transform: uppercase; border-bottom: 1px solid #d1d5db; padding-bottom: 4px; margin-bottom: 8px;">Folha de Antecedentes e Ocorrências</h3>
-            ${(data.historico && data.historico.length) ? data.historico.map((h, i) => `
-              <div style="margin-bottom: 8px; font-size: 11px; border-left: 2px solid #b45309; padding-left: 8px;">
-                <p style="margin: 0; font-weight: bold; color: #374151;">Registro #${i+1} • ${new Date(h.data).toLocaleString('pt-BR')} • Operador: ${h.agente || 'DPF'}</p>
-                <p style="margin: 2px 0 0 0;">${h.texto}</p>
+          <!-- Folha de Antecedentes e Registros -->
+          <div style="margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px 12px;">
+            <h3 style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #374151; margin: 0 0 8px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px;">Folha de Antecedentes e Registros da Ficha</h3>
+            ${(data.historico && data.historico.length) ? data.historico.slice(-5).map((h, i) => `
+              <div style="margin-bottom: 6px; font-size: 10px; border-left: 2px solid #b45309; padding-left: 8px;">
+                <p style="margin: 0; font-weight: bold; color: #4b5563;">Ocorrência #${i+1} • ${new Date(h.data).toLocaleString('pt-BR')} • Autoridade: ${h.agente || 'DPF'}</p>
+                <p style="margin: 1px 0 0 0; color: #1f2937;">${h.texto}</p>
               </div>
-            `).join('') : '<p style="font-size: 11px; color: #6b7280; font-style: italic;">Sem ocorrências registradas nos arquivos federais.</p>'}
+            `).join('') : '<p style="font-size: 10px; color: #6b7280; font-style: italic; margin: 0;">Sem registros de ocorrências nos arquivos federais.</p>'}
           </div>
 
-          <!-- Termo de Certidão e Assinatura -->
-          <div style="margin-top: 50px; border-top: 1px solid #d1d5db; padding-top: 15px; font-size: 10px; display: flex; justify-content: space-between;">
+          <!-- CARIMBO DE ASSINATURA ELETRÔNICA ICP-BRASIL / GOV -->
+          <div style="border: 1.5px dashed #059669; border-radius: 6px; padding: 10px 14px; background: #f0fdf4; display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
             <div>
-              <p style="margin: 0;">Certidão expedida eletronicamente via SISINT / DPF</p>
-              <p style="margin: 2px 0;">Data de emissão: ${dataHoraAtual}</p>
-              <p style="margin: 2px 0;">Autoridade expedidora: ${emitidoPor}</p>
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 3px;">
+                <span style="display: inline-block; width: 8px; height: 8px; background: #059669; border-radius: 50%;"></span>
+                <span style="font-size: 10px; font-weight: 900; color: #065f46; text-transform: uppercase; letter-spacing: 0.5px;">Documento Assinado Eletronicamente</span>
+              </div>
+              <p style="margin: 1px 0; font-size: 11px; font-weight: bold; color: #111827;">${nomeAutoridade} — ${cargoAutoridade}</p>
+              <p style="margin: 1px 0; font-size: 10px; color: #4b5563;">Passaporte / Matrícula: <span style="font-family: monospace; font-weight: bold;">ID: ${idAutoridade}</span> • Departamento de Polícia Federal</p>
+              <p style="margin: 2px 0 0 0; font-size: 9.5px; color: #047857;">Data e Hora da Assinatura: ${dataHoraAtual}</p>
             </div>
-            <div style="text-align: center; width: 220px;">
-              <div style="border-bottom: 1px solid black; margin-bottom: 4px; height: 30px;"></div>
-              <p style="margin: 0; font-weight: bold;">Assinatura da Autoridade</p>
+
+            <div style="text-align: right; border-left: 1px solid #a7f3d0; padding-left: 14px;">
+              <p style="margin: 0; font-size: 9px; text-transform: uppercase; color: #065f46; font-weight: bold;">Autenticação Digital</p>
+              <p style="margin: 2px 0; font-family: monospace; font-size: 10px; font-weight: bold; color: #111827;">${codigoHash}</p>
+              <p style="margin: 0; font-size: 8.5px; color: #6b7280;">Conforme padrão do Sistema Integrado SISINT</p>
             </div>
           </div>
 
         </div>
       `;
 
+      // Dispara a impressão imediatamente
       window.print();
     }
 
-    // --- CONSULTA UNIFICADA (COM CRUZAMENTO PATRIMONIAL, DOSSIÊ E PERICULOSIDADE) ---
+    // --- CONSULTA UNIFICADA ---
     async function executarConsulta() {
       const termo = document.getElementById('input-busca').value.trim();
       const areaResultado = document.getElementById('resultado-pesquisa');
@@ -2047,7 +2077,7 @@
           const historico = data.historico || [];
           const procLimpeza = data.processoLimpeza || null;
 
-          // Cruzamento Automático de Patrimônio (Veículos e Bens do Passaporte)
+          // Cruzamento Automático de Patrimônio
           const snapVeics = await db.collection("veiculos").where("proprietario", "==", pass).get();
           const listaVeiculos = snapVeics.docs.map(d => d.data());
 
@@ -2183,7 +2213,7 @@
 
                     <div class="flex flex-wrap gap-2">
                       <button onclick="exportarDossiePDF('${pass}', '${dadosEncoded}', '${veicsEncoded}', '${bensEncoded}')" 
-                        class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/40 px-3 py-1.5 rounded text-xs font-bold uppercase transition flex items-center gap-1.5">
+                        class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/40 px-3 py-1.5 rounded text-xs font-bold uppercase transition flex items-center gap-1.5 shadow">
                         Exportar Dossiê (PDF)
                       </button>
 
