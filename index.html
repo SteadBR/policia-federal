@@ -190,7 +190,8 @@
           Operações & Bens
         </button>
 
-        <button onclick="trocarModulo('auditoria')" id="btn-mod-auditoria" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200">
+        <!-- Menu Auditoria e Logs: Exclusivo para Delegado+ -->
+        <button onclick="trocarModulo('auditoria')" id="btn-mod-auditoria" class="w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition text-slate-400 hover:bg-slate-800 hover:text-slate-200 hidden">
           Auditoria & Logs
         </button>
 
@@ -306,12 +307,12 @@
         </div>
       </section>
 
-      <!-- ================= MÓDULO 4: AUDITORIA E LOGS ================= -->
+      <!-- ================= MÓDULO 4: AUDITORIA E LOGS (RESTRITO A DELEGADO+) ================= -->
       <section id="modulo-auditoria" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500">Monitor de Acessos ao Sistema (IP / Localização / Horário)</h2>
-            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">Tempo Real</span>
+            <span class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-400 font-mono">Restrito: Delegado+</span>
           </div>
           <p class="text-xs text-slate-400 mb-4">Registro forense de cada operador que iniciou sessão no terminal com geolocalização de rede.</p>
           
@@ -676,6 +677,7 @@
     let cadastrandoNovo = false;
     let sessaoRegistrada = false;
 
+    // Regra de autoridade restrita para Delegado+
     function ehDelegadoOuSuperior() {
       if (!usuarioLogado) return false;
       const c = usuarioLogado.cargo;
@@ -929,6 +931,13 @@
 
           registrarConexaoOperador(dados);
 
+          // Libera o botão de auditoria APENAS para Delegado+
+          if (ehDelegadoOuSuperior()) {
+            document.getElementById('btn-mod-auditoria').classList.remove('hidden');
+          } else {
+            document.getElementById('btn-mod-auditoria').classList.add('hidden');
+          }
+
           if (dados.cargo === 'DIRETOR_GERAL' || dados.cargo === 'ADMIN') {
             document.getElementById('btn-mod-admin').classList.remove('hidden');
             carregarUsuariosPendentes();
@@ -936,7 +945,6 @@
           }
 
           carregarRecentes();
-          carregarLogsAuditoria();
           carregarInqueritosLista();
         }
       } else {
@@ -951,8 +959,10 @@
       await auth.signOut();
     }
 
-    // --- CARREGAR AUDITORIA ---
+    // --- CARREGAR AUDITORIA (DELEGADO+) ---
     function carregarLogsAuditoria() {
+      if (!ehDelegadoOuSuperior()) return;
+
       db.collection("auditoria_acessos").orderBy("dataHora", "desc").limit(15).onSnapshot((snap) => {
         const tbody = document.getElementById('tabela-logs-acesso');
         if (snap.empty) {
@@ -1135,8 +1145,14 @@
       }
     }
 
-    // --- NAVEGAÇÃO DE MÓDULOS ---
+    // --- NAVEGAÇÃO DE MÓDULOS COM PROTEÇÃO RBAC ---
     function trocarModulo(modulo) {
+      // Bloqueio de segurança: Auditoria exclusiva para Delegado+
+      if (modulo === 'auditoria' && !ehDelegadoOuSuperior()) {
+        alert("ACESSO RESTRITO: O módulo de Auditoria e Corregedoria é exclusivo para Delegados Federais ou autoridade superior.");
+        return;
+      }
+
       const modulos = ['consulta', 'inqueritos', 'operacoes', 'auditoria', 'admin'];
       modulos.forEach(m => {
         const el = document.getElementById(`modulo-${m}`);
@@ -1147,7 +1163,13 @@
 
       document.getElementById(`modulo-${modulo}`).classList.remove('hidden');
       const btnAtivo = document.getElementById(`btn-mod-${modulo}`);
-      btnAtivo.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition bg-amber-600/10 text-amber-500 border-l-2 border-amber-500";
+      if (btnAtivo) {
+        btnAtivo.className = "w-full text-left px-3 py-2.5 rounded text-xs font-semibold uppercase tracking-wider flex items-center gap-3 transition bg-amber-600/10 text-amber-500 border-l-2 border-amber-500";
+      }
+
+      if (modulo === 'auditoria') {
+        carregarLogsAuditoria();
+      }
     }
 
     // --- CONTROLE DE MODAIS ---
@@ -1229,7 +1251,7 @@
       }
     }
 
-    // --- LIMPAR FICHA POLICIAL (RESTRITO A DELEGADO+) COM TERMO "ARQUIVADO" ---
+    // --- LIMPAR FICHA POLICIAL (RESTRITO A DELEGADO+) COM TERMO "ARQUIVADOS" ---
     async function limparFichaPolicial(passaporte) {
       if (!ehDelegadoOuSuperior()) {
         return alert("ACESSO NEGADO: Apenas Delegados Federais ou a Direção-Geral possuem autoridade para determinar a limpeza/reabilitação de uma ficha policial.");
@@ -1576,7 +1598,7 @@
       }
     }
 
-    // --- CONSULTA UNIFICADA (COM FORMATAÇÃO LIMPA E TERMO ARQUIVADO) ---
+    // --- CONSULTA UNIFICADA ---
     async function executarConsulta() {
       const termo = document.getElementById('input-busca').value.trim();
       const areaResultado = document.getElementById('resultado-pesquisa');
@@ -1616,7 +1638,6 @@
           const fotoUrl = data.fotoUrl || FOTO_PADRAO;
           const historico = data.historico || [];
 
-          // Consulta IPLs em aberto onde este cidadão é investigado
           let iplsHtml = `<p class="text-xs text-slate-500 italic py-1">Nenhum inquérito policial (IPL) instaurado para este passaporte.</p>`;
           try {
             const snapIpls = await db.collection("inqueritos").where("suspeitos", "array-contains", pass).get();
