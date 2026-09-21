@@ -48,10 +48,11 @@
       body * {
         visibility: hidden !important;
       }
-      #folha-impressao-dossie, #folha-impressao-dossie * {
+      #folha-impressao-dossie, #folha-impressao-dossie *,
+      #folha-impressao-ipl, #folha-impressao-ipl * {
         visibility: visible !important;
       }
-      #folha-impressao-dossie {
+      #folha-impressao-dossie, #folha-impressao-ipl {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
@@ -289,18 +290,16 @@
         </div>
       </section>
 
-      <!-- ================= MÓDULO 2: INQUÉRITOS POLICIAIS (IPL) - PORTARIA DE INSTAURAÇÃO ================= -->
+      <!-- ================= MÓDULO 2: INQUÉRITOS POLICIAIS (IPL) ================= -->
       <section id="modulo-inqueritos" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <div class="flex justify-between items-center mb-3">
             <div>
               <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500">Divisão de Inquéritos Policiais Eletrônicos (DIP / IPL)</h2>
-              <p class="text-xs text-slate-400">Portarias de instauração, diligências e dossiês formais de investigação criminal.</p>
+              <p class="text-xs text-slate-400">Solicitação e instauração de portarias, provas, depoimentos, mandados e autos completos.</p>
             </div>
-            
-            <!-- Apenas Delegado+ pode instaurar novos IPLs -->
-            <button onclick="abrirModalCriarIPL()" id="btn-novo-ipl" class="bg-amber-600 hover:bg-amber-500 text-black text-xs font-bold px-4 py-2 rounded transition uppercase tracking-wide hidden">
-              + Instaurar Nova Portaria (IPL)
+            <button onclick="abrirModalCriarIPL()" class="bg-amber-600 hover:bg-amber-500 text-black text-xs font-bold px-4 py-2 rounded transition uppercase tracking-wide">
+              + Solicitar / Instaurar Nova Portaria (IPL)
             </button>
           </div>
         </div>
@@ -309,7 +308,7 @@
         <div id="detalhes-ipl-visualizacao" class="hidden"></div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Inquéritos Policiais Instaurados</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Inquéritos Policiais nos Arquivos Federais</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
@@ -651,13 +650,13 @@
     </div>
   </div>
 
-  <!-- Modal de Portaria de Instauração de IPL (Restrito a Delegado+) -->
+  <!-- Modal de Solicitação / Instauração de Portaria de IPL -->
   <div id="modal-criar-ipl" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
         <div>
-          <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Portaria de Instauração de Inquérito Policial (IPL)</h3>
-          <p class="text-[11px] text-slate-400">Ato privativo da Autoridade Policial (Delegado)</p>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Solicitação / Portaria de Inquérito Policial (IPL)</h3>
+          <p class="text-[11px] text-slate-400">Abertura de dossiê de investigação criminal</p>
         </div>
         <button onclick="fecharModalCriarIPL()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
@@ -682,7 +681,7 @@
 
         <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
           <button onclick="fecharModalCriarIPL()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded font-bold uppercase transition">Cancelar</button>
-          <button onclick="salvarNovoIPL()" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded font-bold uppercase transition">Assinar e Instaurar Portaria</button>
+          <button onclick="salvarNovoIPL()" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded font-bold uppercase transition">Salvar Solicitação / Portaria</button>
         </div>
       </div>
     </div>
@@ -848,8 +847,9 @@
     </div>
   </div>
 
-  <!-- ================= ELEMENTO PARA IMPRESSÃO DE DOSSIÊ ================= -->
+  <!-- ================= ELEMENTOS PARA IMPRESSÃO / PDF ================= -->
   <div id="folha-impressao-dossie" class="hidden"></div>
+  <div id="folha-impressao-ipl" class="hidden"></div>
 
   <!-- ================= JAVASCRIPT & LÓGICA ================= -->
   <script>
@@ -916,7 +916,7 @@
     function formatarStatus(status) {
       if (!status) return '-';
       if (status === 'EM_ANDAMENTO') return 'Em Andamento';
-      if (status === 'RELATADO') return 'Relatado ao Judiciário';
+      if (status === 'AGUARDANDO_AUTORIZACAO') return 'Aguardando Autorização';
       if (status === 'ARQUIVADO') return 'Arquivado';
       return status.replace(/_/g, ' ');
     }
@@ -1145,10 +1145,8 @@
 
           if (ehDelegadoOuSuperior()) {
             document.getElementById('btn-mod-auditoria').classList.remove('hidden');
-            document.getElementById('btn-novo-ipl').classList.remove('hidden');
           } else {
             document.getElementById('btn-mod-auditoria').classList.add('hidden');
-            document.getElementById('btn-novo-ipl').classList.add('hidden');
           }
 
           if (dados.cargo === 'DIRETOR_GERAL' || dados.cargo === 'ADMIN') {
@@ -1648,11 +1646,12 @@
       }
     }
 
-    // --- MÓDULO DE INQUÉRITOS (IPL) - PORTARIA DE INSTAURAÇÃO ---
+    // --- MÓDULO DE INQUÉRITOS (IPL) ---
     function abrirModalCriarIPL() {
-      if (!ehDelegadoOuSuperior()) {
-        return alert("ACESSO RESTRITO: A Portaria de Instauração de Inquérito Policial é um ato privativo de Delegados Federais.");
-      }
+      document.getElementById('ipl-cad-titulo').value = '';
+      document.getElementById('ipl-cad-crime').value = '';
+      document.getElementById('ipl-cad-suspeitos').value = '';
+      document.getElementById('ipl-cad-descricao').value = '';
       document.getElementById('modal-criar-ipl').classList.remove('hidden');
       document.getElementById('modal-criar-ipl').classList.add('flex');
     }
@@ -1669,14 +1668,16 @@
       const descricao = document.getElementById('ipl-cad-descricao').value.trim();
 
       if (!titulo || !crime || !suspeitosStr || !descricao) {
-        return alert('Por favor, preencha todos os campos obrigatórios da Portaria.');
+        return alert('Por favor, preencha todos os campos obrigatórios.');
       }
 
       const suspeitosArray = suspeitosStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
       const anoAtual = new Date().getFullYear();
       const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
       const protocolo = `IPL-${anoAtual}.${numeroAleatorio}`;
-      const delegadoTitular = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "OPERADOR";
+
+      const statusInicial = ehDelegadoOuSuperior() ? "EM_ANDAMENTO" : "AGUARDANDO_AUTORIZACAO";
 
       try {
         await db.collection("inqueritos").doc(protocolo).set({
@@ -1685,26 +1686,31 @@
           crime: crime,
           suspeitos: suspeitosArray,
           descricao: descricao,
-          status: "EM_ANDAMENTO",
-          delegado: delegadoTitular,
+          status: statusInicial,
+          solicitadoPor: autorNome,
+          delegado: ehDelegadoOuSuperior() ? autorNome : "Aguardando Atribuição",
+          provas: [],
+          depoimentos: [],
+          mandados: [],
+          historicoAndamento: [{
+            data: new Date().toISOString(),
+            texto: ehDelegadoOuSuperior() ? `Portaria de instauração assinada e publicada por ${autorNome}.` : `Inquérito solicitado por ${autorNome}. Aguardando autorização de Delegado.`,
+            agente: autorNome
+          }],
           criadoEm: firebase.firestore.FieldValue.serverTimestamp()
         });
 
         await db.collection("auditoria").add({
-          acao: "INSTAURACAO_IPL",
-          alvo: `Protocolo: ${protocolo} | Operação: ${titulo}`,
-          agente: delegadoTitular,
+          acao: "SOLICITACAO_OU_INSTAURACAO_IPL",
+          alvo: `Protocolo: ${protocolo} | Título: ${titulo}`,
+          agente: autorNome,
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert(`Portaria de Inquérito Policial instaurada com sucesso!\nProtocolo Oficial: ${protocolo}`);
+        alert(ehDelegadoOuSuperior() ? `Inquérito instaurado com sucesso!\nProtocolo: ${protocolo}` : `Solicitação de IPL enviada com sucesso!\nProtocolo: ${protocolo} (Aguardando autorização de um Delegado).`);
         fecharModalCriarIPL();
-        document.getElementById('ipl-cad-titulo').value = '';
-        document.getElementById('ipl-cad-crime').value = '';
-        document.getElementById('ipl-cad-suspeitos').value = '';
-        document.getElementById('ipl-cad-descricao').value = '';
       } catch (err) {
-        alert("Erro ao instaurar Portaria: " + traduzirErro(err));
+        alert("Erro ao salvar inquérito: " + traduzirErro(err));
       }
     }
 
@@ -1721,17 +1727,19 @@
           const ipl = doc.data();
           const suspeitosBadges = (ipl.suspeitos || []).map(s => `<span class="bg-slate-800 text-amber-500 px-1.5 py-0.5 rounded text-[10px] mr-1 font-mono">ID:${s}</span>`).join('');
           
+          let corStatus = "bg-amber-950 text-amber-400 border border-amber-800";
+          if (ipl.status === 'ARQUIVADO') corStatus = "bg-slate-800 text-slate-400";
+          if (ipl.status === 'AGUARDANDO_AUTORIZACAO') corStatus = "bg-purple-950 text-purple-400 border border-purple-800";
+
           tbody.innerHTML += `
             <tr class="hover:bg-slate-950/40">
               <td class="p-3 text-amber-500 font-bold font-mono">${ipl.protocolo}</td>
               <td class="p-3 font-sans text-slate-200 font-medium">${ipl.titulo}</td>
-              <td class="p-3 font-sans text-slate-300">${ipl.crime || 'Investigação Geral'}</td>
+              <td class="p-3 font-sans text-slate-300">${ipl.crime || '-'}</td>
               <td class="p-3 font-sans">${suspeitosBadges || '-'}</td>
               <td class="p-3 font-sans text-slate-400">${ipl.delegado}</td>
               <td class="p-3">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
-                  ipl.status === 'EM_ANDAMENTO' ? 'bg-amber-950 text-amber-400 border border-amber-800' : 'bg-slate-800 text-slate-400'
-                }">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${corStatus}">
                   ${formatarStatus(ipl.status)}
                 </span>
               </td>
@@ -1758,18 +1766,105 @@
 
         const ipl = doc.data();
         const dataFormatada = ipl.criadoEm ? formatarDataHora(ipl.criadoEm) : '-';
+        const isArquivado = ipl.status === 'ARQUIVADO';
+        const aguardandoAuth = ipl.status === 'AGUARDANDO_AUTORIZACAO';
+
+        // Renderização de Provas
+        let provasHtml = (ipl.provas || []).map((p, idx) => `
+          <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs flex justify-between items-center">
+            <div>
+              <p class="font-bold text-amber-500">Evidência #${idx+1}: ${p.titulo}</p>
+              <p class="text-slate-300 mt-0.5">${p.descricao}</p>
+              <a href="${p.url}" target="_blank" class="text-amber-400 underline text-[11px] block mt-1">Ver Mídia / Documento Anexado</a>
+            </div>
+            <span class="text-[10px] text-slate-500">${p.juntadoPor}</span>
+          </div>
+        `).join('') || '<p class="text-xs text-slate-500 italic">Nenhuma prova anexada aos autos.</p>';
+
+        // Renderização de Depoimentos
+        let depoimentosHtml = (ipl.depoimentos || []).map((d, idx) => `
+          <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs space-y-1">
+            <div class="flex justify-between font-mono text-[11px] text-slate-400">
+              <span class="font-bold text-amber-400">Termo de Oitiva #${idx+1} (${d.tipoDepoente})</span>
+              <span>Testemunha/Envolvido: ID ${d.passaporteDepoente} • Escrivão: ${d.registradoPor}</span>
+            </div>
+            <p class="text-slate-200 whitespace-pre-wrap">${d.declaracao}</p>
+          </div>
+        `).join('') || '<p class="text-xs text-slate-500 italic">Nenhum depoimento registrado.</p>';
+
+        // Renderização de Mandados
+        let mandadosHtml = (ipl.mandados || []).map((m, idx) => `
+          <div class="bg-slate-950 p-3 rounded border border-slate-800 text-xs flex justify-between items-center">
+            <div>
+              <span class="font-mono font-bold text-amber-400">Mandado #${idx+1}: ${formatarMandado(m.tipo)}</span>
+              <p class="text-slate-300 mt-0.5">Alvo (ID): <span class="font-mono font-bold">${m.alvoPassaporte}</span> • Fundamento: ${m.motivo}</p>
+              <p class="text-[10px] text-slate-400 mt-1">Expedido por: ${m.expedidoPor}</p>
+            </div>
+            <div>
+              <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${m.status === 'ATIVO' ? 'bg-red-950 text-red-400 border border-red-800' : 'bg-emerald-950 text-emerald-400 border border-emerald-800'}">
+                ${m.status}
+              </span>
+              ${m.status === 'ATIVO' && ehDelegadoOuSuperior() && !isArquivado ? `
+                <button onclick="cumprirMandadoIPL('${protocolo}', '${m.id}')" class="block mt-2 bg-emerald-600 hover:bg-emerald-500 text-black px-2 py-0.5 rounded text-[10px] font-bold uppercase">Cumprir</button>
+              ` : ''}
+            </div>
+          </div>
+        `).join('') || '<p class="text-xs text-slate-500 italic">Nenhum mandado solicitado ou expedido neste IPL.</p>';
+
+        // Linha do tempo de andamento
+        let historicoIplHtml = (ipl.historicoAndamento || []).map(h => `
+          <div class="text-[11px] bg-slate-950 p-2 rounded border border-slate-800 text-slate-300">
+            <span class="text-amber-500 font-mono font-bold">${formatarDataHora(h.data)}</span> — ${h.texto} <span class="text-slate-500">(${h.agente})</span>
+          </div>
+        `).join('');
 
         container.innerHTML = `
-          <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4 shadow-xl">
-            <div class="flex justify-between items-start border-b border-slate-800 pb-3">
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-6 shadow-xl">
+            
+            <!-- Topo do IPL -->
+            <div class="flex flex-wrap justify-between items-start gap-3 border-b border-slate-800 pb-4">
               <div>
-                <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono font-bold uppercase">Autos de Inquérito Policial • Portaria de Instauração</span>
+                <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono font-bold uppercase">Autos de Inquérito Policial</span>
                 <h3 class="text-lg font-bold text-slate-100 mt-1">${ipl.titulo}</h3>
                 <p class="text-xs text-amber-500 font-mono">Protocolo: ${ipl.protocolo} • Instaurado em: ${dataFormatada}</p>
               </div>
-              <button onclick="document.getElementById('detalhes-ipl-visualizacao').classList.add('hidden')" class="text-slate-400 hover:text-white text-xs uppercase underline">Fechar Autos</button>
+
+              <div class="flex flex-wrap gap-2">
+                <button onclick="exportarIPLcompletoPDF('${protocolo}')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500/40 px-3 py-1.5 rounded text-xs font-bold uppercase transition shadow">
+                  Exportar IPL (PDF)
+                </button>
+
+                <!-- Ações de Delegado (Autorizar, Arquivar/Desarquivar) -->
+                ${ehDelegadoOuSuperior() && aguardandoAuth ? `
+                  <button onclick="autorizarIPL('${protocolo}')" class="bg-emerald-600 hover:bg-emerald-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">
+                    Autorizar e Instaurar Portaria
+                  </button>
+                ` : ''}
+
+                ${ehDelegadoOuSuperior() && !aguardandoAuth ? `
+                  ${isArquivado ? `
+                    <button onclick="desarquivarIPL('${protocolo}')" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">
+                      Desarquivar IPL
+                    </button>
+                  ` : `
+                    <button onclick="arquivarIPL('${protocolo}')" class="bg-red-950 hover:bg-red-900 text-red-300 border border-red-800 px-3 py-1.5 rounded text-xs font-bold uppercase transition">
+                      Arquivar IPL
+                    </button>
+                  `}
+                ` : ''}
+
+                <button onclick="document.getElementById('detalhes-ipl-visualizacao').classList.add('hidden')" class="text-slate-400 hover:text-white text-xs uppercase underline self-center">Fechar</button>
+              </div>
             </div>
 
+            <!-- Alerta se estiver aguardando autorização -->
+            ${aguardandoAuth ? `
+              <div class="bg-purple-950/50 border border-purple-800 p-3 rounded text-xs text-purple-200 flex items-center justify-between">
+                <span>⚠️ Este inquérito foi solicitado por um agente e <strong>aguarda autorização formal</strong> de um Delegado para iniciar as diligências.</span>
+              </div>
+            ` : ''}
+
+            <!-- Informações Gerais -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950 p-4 rounded border border-slate-800/80 text-xs">
               <div>
                 <p class="text-slate-500 uppercase text-[11px]">Autoridade Presidente</p>
@@ -1780,7 +1875,7 @@
                 <p class="font-bold text-amber-400">${ipl.crime || 'Não especificada'}</p>
               </div>
               <div>
-                <p class="text-slate-500 uppercase text-[11px]">Indivíduos Investigados</p>
+                <p class="text-slate-500 uppercase text-[11px]">Alvos Investigados</p>
                 <div class="flex flex-wrap gap-1 mt-1">
                   ${(ipl.suspeitos || []).map(s => `
                     <button onclick="document.getElementById('input-busca').value='${s}'; trocarModulo('consulta'); executarConsulta();" class="bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono px-2 py-0.5 rounded text-[11px] border border-slate-700">
@@ -1791,14 +1886,424 @@
               </div>
             </div>
 
+            <!-- Síntese dos Fatos -->
             <div class="bg-slate-950 p-4 rounded border border-slate-800/80">
-              <p class="text-xs text-slate-400 uppercase font-bold mb-1">Portaria / Síntese dos Fatos Investigados</p>
+              <p class="text-xs text-slate-400 uppercase font-bold mb-1">Portaria / Síntese dos Fatos</p>
               <p class="text-xs text-slate-200 leading-relaxed font-sans whitespace-pre-wrap">${ipl.descricao}</p>
             </div>
+
+            <!-- Seção de Adicionar Novos Envolvidos -->
+            ${!isArquivado && !aguardandoAuth ? `
+              <div class="bg-slate-950 p-4 rounded border border-slate-800/80 space-y-3">
+                <h5 class="text-xs font-bold uppercase tracking-wider text-amber-500">Adicionar Novo Investigado aos Autos</h5>
+                <div class="flex gap-2">
+                  <input id="ipl-novo-suspeito-id" type="text" placeholder="Passaporte (ID) do novo envolvido..." class="flex-1 bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
+                  <button onclick="adicionarInvestigadoIPL('${protocolo}')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded text-xs font-bold uppercase transition">Adicionar Alvo</button>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Seção de Provas e Documentos -->
+            <div class="space-y-3 border-t border-slate-800 pt-4">
+              <div class="flex justify-between items-center">
+                <h5 class="text-xs font-bold uppercase tracking-wider text-amber-500">Provas, Documentos e Mídias</h5>
+              </div>
+              
+              ${!isArquivado && !aguardandoAuth ? `
+                <div class="bg-slate-950 p-3 rounded border border-slate-800 space-y-2">
+                  <p class="text-[11px] font-bold text-slate-400 uppercase">Juntar Nova Prova Material</p>
+                  <input id="ipl-prova-titulo" type="text" placeholder="Título da Prova (Ex: Imagem da Câmera de Segurança / Laudo Pericial)" class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500" />
+                  <input id="ipl-prova-url" type="text" placeholder="URL da Imagem / Documento (https://...)" class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500" />
+                  <textarea id="ipl-prova-desc" rows="2" placeholder="Descrição da evidência ou cadeia de custódia..." class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+                  <button onclick="anexarProvaIPL('${protocolo}')" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">+ Anexar Prova</button>
+                </div>
+              ` : ''}
+
+              <div class="space-y-2">${provasHtml}</div>
+            </div>
+
+            <!-- Seção de Depoimentos e Oitivas -->
+            <div class="space-y-3 border-t border-slate-800 pt-4">
+              <h5 class="text-xs font-bold uppercase tracking-wider text-amber-500">Termos de Oitiva e Depoimentos</h5>
+
+              ${!isArquivado && !aguardandoAuth ? `
+                <div class="bg-slate-950 p-3 rounded border border-slate-800 space-y-2">
+                  <p class="text-[11px] font-bold text-slate-400 uppercase">Registrar Novo Depoimento</p>
+                  <div class="grid grid-cols-2 gap-2">
+                    <input id="ipl-dep-id" type="text" placeholder="Passaporte do Depoente (ID)..." class="bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
+                    <select id="ipl-dep-tipo" class="bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                      <option value="Testemunha">Testemunha</option>
+                      <option value="Investigado">Investigado / Suspeito</option>
+                      <option value="Vítima">Vítima</option>
+                      <option value="Informante">Informante</option>
+                    </select>
+                  </div>
+                  <textarea id="ipl-dep-declaracao" rows="3" placeholder="Relato integral prestado pelo depoente perante a autoridade..." class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+                  <button onclick="adicionarDepoimentoIPL('${protocolo}')" class="bg-amber-600 hover:bg-amber-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">+ Registrar Oitiva</button>
+                </div>
+              ` : ''}
+
+              <div class="space-y-2">${depoimentosHtml}</div>
+            </div>
+
+            <!-- Seção de Mandados Vinculados -->
+            <div class="space-y-3 border-t border-slate-800 pt-4">
+              <h5 class="text-xs font-bold uppercase tracking-wider text-amber-500">Mandados Judiciais (Prisão ou Busca)</h5>
+
+              ${!isArquivado && !aguardandoAuth && ehDelegadoOuSuperior() ? `
+                <div class="bg-slate-950 p-3 rounded border border-slate-800 space-y-2">
+                  <p class="text-[11px] font-bold text-slate-400 uppercase">Solicitar e Expedir Mandado</p>
+                  <div class="grid grid-cols-2 gap-2">
+                    <select id="ipl-mandado-tipo" class="bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+                      <option value="PRISAO_PREVENTIVA">Prisão Preventiva</option>
+                      <option value="BUSCA_APREENSAO">Busca e Apreensão</option>
+                    </select>
+                    <input id="ipl-mandado-alvo" type="text" placeholder="Passaporte do Alvo (ID)..." class="bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
+                  </div>
+                  <input id="ipl-mandado-motivo" type="text" placeholder="Fundamentação legal para expedição..." class="w-full bg-slate-900 border border-slate-800 rounded px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500" />
+                  <button onclick="solicitarMandadoIPL('${protocolo}')" class="bg-red-600 hover:bg-red-500 text-black px-3 py-1.5 rounded text-xs font-bold uppercase transition font-bold">Expedir Mandado (Atualiza Ficha)</button>
+                </div>
+              ` : ''}
+
+              <div class="space-y-2">${mandadosHtml}</div>
+            </div>
+
+            <!-- Linha do Tempo e Andamento -->
+            <div class="border-t border-slate-800 pt-4 space-y-2">
+              <h5 class="text-xs font-bold uppercase tracking-wider text-slate-400">Histórico de Andamento dos Autos</h5>
+              <div class="space-y-1.5 max-h-40 overflow-y-auto">${historicoIplHtml}</div>
+            </div>
+
           </div>
         `;
       } catch (err) {
         container.innerHTML = `<div class="bg-red-950 text-red-300 p-4 rounded text-xs">Erro ao abrir autos: ${traduzirErro(err)}</div>`;
+      }
+    }
+
+    // --- AÇÕES DO IPL (Autorizar, Arquivar, Adicionar Provas/Alvos e Mandados) ---
+    async function autorizarIPL(protocolo) {
+      if (!ehDelegadoOuSuperior()) return alert("Apenas Delegados podem autorizar a instauração.");
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
+
+      try {
+        await db.collection("inqueritos").doc(protocolo).update({
+          status: "EM_ANDAMENTO",
+          delegado: autorNome,
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `Portaria de inquérito autorizada e assumida pela autoridade policial ${autorNome}.`,
+            agente: autorNome
+          })
+        });
+        alert("Inquérito autorizado com sucesso!");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao autorizar IPL: " + traduzirErro(err));
+      }
+    }
+
+    async function arquivarIPL(protocolo) {
+      if (!ehDelegadoOuSuperior()) return;
+      const justificativa = prompt("Informe a fundamentação legal para o ARQUIVAMENTO deste inquérito:");
+      if (!justificativa) return;
+
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
+
+      try {
+        await db.collection("inqueritos").doc(protocolo).update({
+          status: "ARQUIVADO",
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `[ARQUIVADO] Inquérito arquivado por despacho da autoridade. Fundamentação: "${justificativa}".`,
+            agente: autorNome
+          })
+        });
+        alert("Inquérito arquivado com sucesso.");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao arquivar: " + traduzirErro(err));
+      }
+    }
+
+    async function desarquivarIPL(protocolo) {
+      if (!ehDelegadoOuSuperior()) return;
+      const justificativa = prompt("Informe o motivo do DESARQUIVAMENTO e reabertura dos autos:");
+      if (!justificativa) return;
+
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
+
+      try {
+        await db.collection("inqueritos").doc(protocolo).update({
+          status: "EM_ANDAMENTO",
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `[DESARQUIVADO] Inquérito reaberto por determinação da autoridade. Motivo: "${justificativa}".`,
+            agente: autorNome
+          })
+        });
+        alert("Inquérito desarquivado com sucesso.");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao desarquivar: " + traduzirErro(err));
+      }
+    }
+
+    async function adicionarInvestigadoIPL(protocolo) {
+      const passaporteAlvo = document.getElementById('ipl-novo-suspeito-id').value.trim();
+      if (!passaporteAlvo) return alert("Informe o Passaporte do novo investigado.");
+
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "OPERADOR";
+
+      try {
+        await db.collection("inqueritos").doc(protocolo).update({
+          suspeitos: firebase.firestore.FieldValue.arrayUnion(passaporteAlvo),
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `Novo alvo investigado anexado aos autos: Passaporte ID ${passaporteAlvo}.`,
+            agente: autorNome
+          })
+        });
+        alert("Investigado adicionado com sucesso!");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao adicionar investigado: " + traduzirErro(err));
+      }
+    }
+
+    async function anexarProvaIPL(protocolo) {
+      const titulo = document.getElementById('ipl-prova-titulo').value.trim();
+      const url = document.getElementById('ipl-prova-url').value.trim();
+      const descricao = document.getElementById('ipl-prova-desc').value.trim();
+
+      if (!titulo || !url) return alert("Informe o Título e a URL da prova.");
+
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "OPERADOR";
+
+      try {
+        const novaProva = {
+          titulo: titulo,
+          url: url,
+          descricao: descricao || 'Sem descrição',
+          juntadoPor: autorNome,
+          data: new Date().toISOString()
+        };
+
+        await db.collection("inqueritos").doc(protocolo).update({
+          provas: firebase.firestore.FieldValue.arrayUnion(novaProva),
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `Nova prova documental/material juntada aos autos: "${titulo}".`,
+            agente: autorNome
+          })
+        });
+
+        alert("Prova anexada com sucesso!");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao anexar prova: " + traduzirErro(err));
+      }
+    }
+
+    async function adicionarDepoimentoIPL(protocolo) {
+      const passaporteDep = document.getElementById('ipl-dep-id').value.trim();
+      const tipo = document.getElementById('ipl-dep-tipo').value;
+      const declaracao = document.getElementById('ipl-dep-declaracao').value.trim();
+
+      if (!passaporteDep || !declaracao) return alert("Informe o Passaporte do depoente e o teor da declaração.");
+
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "OPERADOR";
+
+      try {
+        const novoDep = {
+          passaporteDepoente: passaporteDep,
+          tipoDepoente: tipo,
+          declaracao: declaracao,
+          registradoPor: autorNome,
+          data: new Date().toISOString()
+        };
+
+        await db.collection("inqueritos").doc(protocolo).update({
+          depoimentos: firebase.firestore.FieldValue.arrayUnion(novoDep),
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `Termo de oitiva registrado (${tipo} - ID ${passaporteDep}).`,
+            agente: autorNome
+          })
+        });
+
+        alert("Depoimento registrado com sucesso!");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao registrar depoimento: " + traduzirErro(err));
+      }
+    }
+
+    async function solicitarMandadoIPL(protocolo) {
+      if (!ehDelegadoOuSuperior()) return alert("Apenas Delegados podem expedir mandados judiciais.");
+      const tipo = document.getElementById('ipl-mandado-tipo').value;
+      const alvoPassaporte = document.getElementById('ipl-mandado-alvo').value.trim();
+      const motivo = document.getElementById('ipl-mandado-motivo').value.trim();
+
+      if (!alvoPassaporte || !motivo) return alert("Informe o Passaporte do alvo e a fundamentação.");
+
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
+
+      try {
+        const idMandado = Math.random().toString(36).substring(2, 9);
+        const novoMandado = {
+          id: idMandado,
+          tipo: tipo,
+          alvoPassaporte: alvoPassaporte,
+          motivo: motivo,
+          status: "ATIVO",
+          expedidoPor: autorNome,
+          data: new Date().toISOString()
+        };
+
+        // 1. Adiciona o mandado no inquérito
+        await db.collection("inqueritos").doc(protocolo).update({
+          mandados: firebase.firestore.FieldValue.arrayUnion(novoMandado),
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `Mandado de ${formatarMandado(tipo)} expedido contra o ID ${alvoPassaporte}.`,
+            agente: autorNome
+          })
+        });
+
+        // 2. Atualiza automaticamente a ficha do cidadão com o mandado ativo
+        await db.collection("cidadaos").doc(alvoPassaporte).update({
+          mandado: tipo
+        });
+
+        alert("Mandado expedido com sucesso! A ficha do cidadão foi atualizada.");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao expedir mandado: " + traduzirErro(err));
+      }
+    }
+
+    async function cumprirMandadoIPL(protocolo, idMandado) {
+      if (!ehDelegadoOuSuperior()) return;
+      if (!confirm("Deseja dar cumprimento/revogar este mandado? O status na ficha do cidadão voltará a sem restrições.")) return;
+
+      const autorNome = usuarioLogado ? `${usuarioLogado.nome} (${usuarioLogado.passaporte})` : "DELEGADO";
+
+      try {
+        const docRef = db.collection("inqueritos").doc(protocolo);
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) return;
+
+        const ipl = docSnap.data();
+        let alvoAfetado = "";
+
+        const mandadosAtualizados = (ipl.mandados || []).map(m => {
+          if (m.id === idMandado) {
+            alvoAfetado = m.alvoPassaporte;
+            return { ...m, status: "CUMPRIDO" };
+          }
+          return m;
+        });
+
+        await docRef.update({
+          mandados: mandadosAtualizados,
+          historicoAndamento: firebase.firestore.FieldValue.arrayUnion({
+            data: new Date().toISOString(),
+            texto: `Mandado ID ${idMandado} cumprido/baixado pela autoridade.`,
+            agente: autorNome
+          })
+        });
+
+        if (alvoAfetado) {
+          await db.collection("cidadaos").doc(alvoAfetado).update({
+            mandado: "NENHUM"
+          });
+        }
+
+        alert("Mandado baixado com sucesso! A ficha do cidadão foi limpa de restrições ativas.");
+        visualizarIPL(protocolo);
+      } catch (err) {
+        alert("Erro ao cumprir mandado: " + traduzirErro(err));
+      }
+    }
+
+    // --- EXPORTAR IPL COMPLETO EM PDF ---
+    async function exportarIPLcompletoPDF(protocolo) {
+      try {
+        const doc = await db.collection("inqueritos").doc(protocolo).get();
+        if (!doc.exists) return alert("Inquérito não encontrado.");
+        const ipl = doc.data();
+
+        const dataHoraAtual = new Date().toLocaleString('pt-BR');
+        const nomeAutoridade = usuarioLogado ? (usuarioLogado.nome || 'Operador Federal') : 'Operador Federal';
+        const cargoAutoridade = usuarioLogado ? formatarCargo(usuarioLogado.cargo) : 'Agente Federal';
+        const idAutoridade = usuarioLogado ? usuarioLogado.passaporte : '0000';
+        const codigoHash = "BR-DPF-IPL-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+        const tituloOriginal = document.title;
+        document.title = `Autos_IPL_${ipl.protocolo}`;
+
+        const folha = document.getElementById('folha-impressao-ipl');
+        folha.innerHTML = `
+          <div style="font-family: Arial, Helvetica, sans-serif; color: #111827; max-width: 800px; margin: 0 auto; line-height: 1.4; padding: 15px;">
+            
+            <div style="text-align: center; border-bottom: 2px solid #b45309; padding-bottom: 12px; margin-bottom: 15px;">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" style="height: 60px; width: auto; margin: 0 auto 6px auto; display: block;" />
+              <h2 style="margin: 0; font-size: 12px; text-transform: uppercase; font-weight: bold; color: #374151;">Ministério da Justiça e Segurança Pública</h2>
+              <h1 style="margin: 2px 0 0 0; font-size: 15px; text-transform: uppercase; font-weight: 900; color: #b45309;">Departamento de Polícia Federal</h1>
+              <p style="margin: 2px 0 0 0; font-size: 10px; color: #6b7280; font-weight: bold;">Autos de Inquérito Policial • Protocolo Oficial: ${ipl.protocolo}</p>
+            </div>
+
+            <div style="margin-bottom: 15px; font-size: 11px;">
+              <p><strong>Operação / Título:</strong> ${ipl.titulo}</p>
+              <p><strong>Tipificação Penal:</strong> ${ipl.crime || 'Não especificada'}</p>
+              <p><strong>Autoridade Presidente:</strong> ${ipl.delegado}</p>
+              <p><strong>Status Atual:</strong> ${formatarStatus(ipl.status)}</p>
+              <p><strong>Investigados (IDs):</strong> ${(ipl.suspeitos || []).join(', ')}</p>
+            </div>
+
+            <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; padding: 10px; border-radius: 4px;">
+              <h4 style="margin: 0 0 5px 0; font-size: 11px; text-transform: uppercase; color: #b45309;">Portaria / Síntese dos Fatos</h4>
+              <p style="margin: 0; font-size: 10.5px; white-space: pre-wrap;">${ipl.descricao}</p>
+            </div>
+
+            <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; padding: 10px; border-radius: 4px;">
+              <h4 style="margin: 0 0 5px 0; font-size: 11px; text-transform: uppercase; color: #b45309;">Provas e Evidências Juntadas (${(ipl.provas || []).length})</h4>
+              ${(ipl.provas || []).map((p, idx) => `
+                <div style="font-size: 10px; margin-bottom: 4px; border-bottom: 1px solid #f3f4f6; padding-bottom: 3px;">
+                  <strong>Evidência #${idx+1} (${p.titulo}):</strong> ${p.descricao} <em>(Juntado por ${p.juntadoPor})</em>
+                </div>
+              `).join('') || '<p style="font-size: 10px; color: #6b7280; margin:0;">Nenhuma prova anexada.</p>'}
+            </div>
+
+            <div style="margin-bottom: 15px; border: 1px solid #e5e7eb; padding: 10px; border-radius: 4px;">
+              <h4 style="margin: 0 0 5px 0; font-size: 11px; text-transform: uppercase; color: #b45309;">Termos de Oitiva e Depoimentos (${(ipl.depoimentos || []).length})</h4>
+              ${(ipl.depoimentos || []).map((d, idx) => `
+                <div style="font-size: 10px; margin-bottom: 6px; border-bottom: 1px solid #f3f4f6; padding-bottom: 4px;">
+                  <strong>Oitiva #${idx+1} (${d.tipoDepoente} - ID ${d.passaporteDepoente}):</strong>${d.declaracao}
+                </div>
+              `).join('') || '<p style="font-size: 10px; color: #6b7280; margin:0;">Nenhum depoimento registrado.</p>'}
+            </div>
+
+            <div style="border: 1.5px dashed #059669; border-radius: 6px; padding: 10px 14px; background: #f0fdf4; display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+              <div>
+                <p style="margin: 0 0 2px 0; font-size: 10px; font-weight: 900; color: #065f46; text-transform: uppercase;">Autos Encerrados / Emitidos via SISINT</p>
+                <p style="margin: 1px 0; font-size: 11px; font-weight: bold; color: #111827;">${nomeAutoridade} — ${cargoAutoridade} (ID: ${idAutoridade})</p>
+                <p style="margin: 2px 0 0 0; font-size: 9.5px; color: #047857;">Data de Emissão: ${dataHoraAtual}</p>
+              </div>
+              <div style="text-align: right; border-left: 1px solid #a7f3d0; padding-left: 14px;">
+                <p style="margin: 0; font-size: 9px; text-transform: uppercase; color: #065f46; font-weight: bold;">Autenticação IPL</p>
+                <p style="margin: 2px 0; font-family: monospace; font-size: 10px; font-weight: bold; color: #111827;">${codigoHash}</p>
+              </div>
+            </div>
+
+          </div>
+        `;
+
+        window.print();
+        setTimeout(() => { document.title = tituloOriginal; }, 1000);
+      } catch (err) {
+        alert("Erro ao exportar IPL: " + traduzirErro(err));
       }
     }
 
@@ -1940,7 +2445,7 @@
       }
     }
 
-    // --- EXPORTAR DOSSIÊ POLICIAL (PDF COM NOME AUTOMÁTICO POR PASSAPORTE) ---
+    // --- EXPORTAR DOSSIÊ POLICIAL ---
     function exportarDossiePDF(passaporte, dadosEncoded, veiculosEncoded, bensEncoded) {
       const data = JSON.parse(decodeURIComponent(dadosEncoded));
       const veiculos = JSON.parse(decodeURIComponent(veiculosEncoded));
