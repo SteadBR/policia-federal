@@ -33,7 +33,6 @@
       background: #334155;
     }
 
-    /* CONTROLE RIGOROSO DE PÁGINAS PARA IMPRESSÃO / PDF */
     @page {
       size: A4 portrait;
       margin: 10mm;
@@ -290,30 +289,34 @@
         </div>
       </section>
 
-      <!-- ================= MÓDULO 2: INQUÉRITOS POLICIAIS (IPL) ================= -->
+      <!-- ================= MÓDULO 2: INQUÉRITOS POLICIAIS (IPL) - PORTARIA DE INSTAURAÇÃO ================= -->
       <section id="modulo-inqueritos" class="hidden space-y-6">
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
           <div class="flex justify-between items-center mb-3">
             <div>
               <h2 class="text-xs font-bold uppercase tracking-wider text-amber-500">Divisão de Inquéritos Policiais Eletrônicos (DIP / IPL)</h2>
-              <p class="text-xs text-slate-400">Dossiês formais de investigação criminal, mandados e oitivas.</p>
+              <p class="text-xs text-slate-400">Portarias de instauração, diligências e dossiês formais de investigação criminal.</p>
             </div>
-            <button onclick="abrirModalCriarIPL()" class="bg-amber-600 hover:bg-amber-500 text-black text-xs font-bold px-3 py-1.5 rounded transition uppercase">
-              + Instaurar Novo IPL
+            
+            <!-- Apenas Delegado+ pode instaurar novos IPLs -->
+            <button onclick="abrirModalCriarIPL()" id="btn-novo-ipl" class="bg-amber-600 hover:bg-amber-500 text-black text-xs font-bold px-4 py-2 rounded transition uppercase tracking-wide hidden">
+              + Instaurar Nova Portaria (IPL)
             </button>
           </div>
         </div>
 
+        <!-- Área de Visualização dos Autos do IPL selecionado -->
         <div id="detalhes-ipl-visualizacao" class="hidden"></div>
 
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Inquéritos em Andamento nos Arquivos Federais</h3>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">Inquéritos Policiais Instaurados</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left text-xs text-slate-300">
               <thead class="text-[11px] uppercase bg-slate-950 text-slate-500 border-b border-slate-800">
                 <tr>
                   <th class="p-3">Protocolo</th>
-                  <th class="p-3">Título do Inquérito</th>
+                  <th class="p-3">Operação / Título</th>
+                  <th class="p-3">Tipificação Penal</th>
                   <th class="p-3">Alvos Investigados</th>
                   <th class="p-3">Delegado Titular</th>
                   <th class="p-3">Status</th>
@@ -322,7 +325,7 @@
               </thead>
               <tbody id="tabela-ipl-lista" class="divide-y divide-slate-800 font-mono">
                 <tr>
-                  <td colspan="6" class="p-4 text-center text-slate-600 font-sans">A carregar inquéritos...</td>
+                  <td colspan="7" class="p-4 text-center text-slate-600 font-sans">A carregar inquéritos...</td>
                 </tr>
               </tbody>
             </table>
@@ -648,31 +651,38 @@
     </div>
   </div>
 
-  <!-- Modal de Instaurar IPL -->
+  <!-- Modal de Portaria de Instauração de IPL (Restrito a Delegado+) -->
   <div id="modal-criar-ipl" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden items-center justify-center p-4 z-50">
     <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full p-6 shadow-2xl">
       <div class="flex justify-between items-center border-b border-slate-800 pb-3 mb-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Instauração de Inquérito Policial (IPL)</h3>
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-amber-500">Portaria de Instauração de Inquérito Policial (IPL)</h3>
+          <p class="text-[11px] text-slate-400">Ato privativo da Autoridade Policial (Delegado)</p>
+        </div>
         <button onclick="fecharModalCriarIPL()" class="text-slate-400 hover:text-white">&times;</button>
       </div>
 
       <div class="space-y-3 text-xs">
         <div>
-          <label class="block text-slate-400 mb-1">Título do Inquérito / Operação <span class="text-amber-500">*</span></label>
-          <input id="ipl-cad-titulo" type="text" placeholder="Ex: Operação Carga Pesada / Tráfico Interestadual" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+          <label class="block text-slate-400 mb-1">Título da Operação / Inquérito <span class="text-amber-500 font-bold">*</span></label>
+          <input id="ipl-cad-titulo" type="text" placeholder="Ex: Operação Carga Pesada / Investigação de Tráfico" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
         </div>
         <div>
-          <label class="block text-slate-400 mb-1">Passaportes dos Investigados / Alvos <span class="text-amber-500">*</span> <span class="text-slate-500 text-[10px]">(Separados por vírgula)</span></label>
+          <label class="block text-slate-400 mb-1">Tipificação Penal / Crimes Investigados <span class="text-amber-500 font-bold">*</span></label>
+          <input id="ipl-cad-crime" type="text" placeholder="Ex: Tráfico Interestadual de Drogas e Organização Criminosa" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block text-slate-400 mb-1">Passaportes dos Investigados / Alvos <span class="text-amber-500 font-bold">*</span> <span class="text-slate-500 text-[10px]">(Separados por vírgula)</span></label>
           <input id="ipl-cad-suspeitos" type="text" placeholder="Ex: 1042, 664, 882" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500 font-mono" />
         </div>
         <div>
-          <label class="block text-slate-400 mb-1">Resumo dos Fatos / Portaria de Instauração <span class="text-amber-500">*</span></label>
-          <textarea id="ipl-cad-descricao" rows="4" placeholder="Descreva os fatos que motivaram a instauração do inquérito policial..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
+          <label class="block text-slate-400 mb-1">Portaria / Fundamentação e Síntese dos Fatos <span class="text-amber-500 font-bold">*</span></label>
+          <textarea id="ipl-cad-descricao" rows="4" placeholder="Descreva os fatos preliminares e indícios que motivam a instauração do inquérito policial..." class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-slate-200 focus:outline-none focus:border-amber-500"></textarea>
         </div>
 
         <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
           <button onclick="fecharModalCriarIPL()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded font-bold uppercase transition">Cancelar</button>
-          <button onclick="salvarNovoIPL()" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded font-bold uppercase transition">Instaurar IPL</button>
+          <button onclick="salvarNovoIPL()" class="bg-amber-600 hover:bg-amber-500 text-black px-4 py-2 rounded font-bold uppercase transition">Assinar e Instaurar Portaria</button>
         </div>
       </div>
     </div>
@@ -1135,8 +1145,10 @@
 
           if (ehDelegadoOuSuperior()) {
             document.getElementById('btn-mod-auditoria').classList.remove('hidden');
+            document.getElementById('btn-novo-ipl').classList.remove('hidden');
           } else {
             document.getElementById('btn-mod-auditoria').classList.add('hidden');
+            document.getElementById('btn-novo-ipl').classList.add('hidden');
           }
 
           if (dados.cargo === 'DIRETOR_GERAL' || dados.cargo === 'ADMIN') {
@@ -1636,8 +1648,11 @@
       }
     }
 
-    // --- MÓDULO DE INQUÉRITOS (IPL) ---
+    // --- MÓDULO DE INQUÉRITOS (IPL) - PORTARIA DE INSTAURAÇÃO ---
     function abrirModalCriarIPL() {
+      if (!ehDelegadoOuSuperior()) {
+        return alert("ACESSO RESTRITO: A Portaria de Instauração de Inquérito Policial é um ato privativo de Delegados Federais.");
+      }
       document.getElementById('modal-criar-ipl').classList.remove('hidden');
       document.getElementById('modal-criar-ipl').classList.add('flex');
     }
@@ -1649,23 +1664,25 @@
 
     async function salvarNovoIPL() {
       const titulo = document.getElementById('ipl-cad-titulo').value.trim();
+      const crime = document.getElementById('ipl-cad-crime').value.trim();
       const suspeitosStr = document.getElementById('ipl-cad-suspeitos').value.trim();
       const descricao = document.getElementById('ipl-cad-descricao').value.trim();
 
-      if (!titulo || !suspeitosStr || !descricao) {
-        return alert('Preencha o Título, os Suspeitos e a Descrição do Inquérito.');
+      if (!titulo || !crime || !suspeitosStr || !descricao) {
+        return alert('Por favor, preencha todos os campos obrigatórios da Portaria.');
       }
 
       const suspeitosArray = suspeitosStr.split(',').map(s => s.trim()).filter(s => s.length > 0);
       const anoAtual = new Date().getFullYear();
       const numeroAleatorio = Math.floor(1000 + Math.random() * 9000);
       const protocolo = `IPL-${anoAtual}.${numeroAleatorio}`;
-      const delegadoTitular = usuarioLogado ? `${usuarioLogado.nome} (ID: ${usuarioLogado.passaporte})` : "DPF";
+      const delegadoTitular = usuarioLogado ? `${usuarioLogado.nome} (${formatarCargo(usuarioLogado.cargo)} - ID: ${usuarioLogado.passaporte})` : "DELEGADO";
 
       try {
         await db.collection("inqueritos").doc(protocolo).set({
           protocolo: protocolo,
           titulo: titulo,
+          crime: crime,
           suspeitos: suspeitosArray,
           descricao: descricao,
           status: "EM_ANDAMENTO",
@@ -1675,18 +1692,19 @@
 
         await db.collection("auditoria").add({
           acao: "INSTAURACAO_IPL",
-          alvo: `Protocolo: ${protocolo} | Título: ${titulo}`,
+          alvo: `Protocolo: ${protocolo} | Operação: ${titulo}`,
           agente: delegadoTitular,
           data: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert(`Inquérito instaurado com sucesso sob o protocolo: ${protocolo}`);
+        alert(`Portaria de Inquérito Policial instaurada com sucesso!\nProtocolo Oficial: ${protocolo}`);
         fecharModalCriarIPL();
         document.getElementById('ipl-cad-titulo').value = '';
+        document.getElementById('ipl-cad-crime').value = '';
         document.getElementById('ipl-cad-suspeitos').value = '';
         document.getElementById('ipl-cad-descricao').value = '';
       } catch (err) {
-        alert("Erro ao instaurar IPL: " + traduzirErro(err));
+        alert("Erro ao instaurar Portaria: " + traduzirErro(err));
       }
     }
 
@@ -1694,7 +1712,7 @@
       db.collection("inqueritos").orderBy("criadoEm", "desc").onSnapshot((snap) => {
         const tbody = document.getElementById('tabela-ipl-lista');
         if (snap.empty) {
-          tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-600 font-sans">Nenhum inquérito policial registrado.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-600 font-sans">Nenhum inquérito policial registrado.</td></tr>`;
           return;
         }
 
@@ -1707,6 +1725,7 @@
             <tr class="hover:bg-slate-950/40">
               <td class="p-3 text-amber-500 font-bold font-mono">${ipl.protocolo}</td>
               <td class="p-3 font-sans text-slate-200 font-medium">${ipl.titulo}</td>
+              <td class="p-3 font-sans text-slate-300">${ipl.crime || 'Investigação Geral'}</td>
               <td class="p-3 font-sans">${suspeitosBadges || '-'}</td>
               <td class="p-3 font-sans text-slate-400">${ipl.delegado}</td>
               <td class="p-3">
@@ -1744,17 +1763,21 @@
           <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4 shadow-xl">
             <div class="flex justify-between items-start border-b border-slate-800 pb-3">
               <div>
-                <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono font-bold uppercase">Autos de Inquérito Policial</span>
+                <span class="text-[10px] bg-amber-950 text-amber-400 border border-amber-800 px-2 py-0.5 rounded font-mono font-bold uppercase">Autos de Inquérito Policial • Portaria de Instauração</span>
                 <h3 class="text-lg font-bold text-slate-100 mt-1">${ipl.titulo}</h3>
                 <p class="text-xs text-amber-500 font-mono">Protocolo: ${ipl.protocolo} • Instaurado em: ${dataFormatada}</p>
               </div>
               <button onclick="document.getElementById('detalhes-ipl-visualizacao').classList.add('hidden')" class="text-slate-400 hover:text-white text-xs uppercase underline">Fechar Autos</button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-950 p-4 rounded border border-slate-800/80 text-xs">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-950 p-4 rounded border border-slate-800/80 text-xs">
               <div>
                 <p class="text-slate-500 uppercase text-[11px]">Autoridade Presidente</p>
                 <p class="font-bold text-slate-200">${ipl.delegado}</p>
+              </div>
+              <div>
+                <p class="text-slate-500 uppercase text-[11px]">Tipificação Penal</p>
+                <p class="font-bold text-amber-400">${ipl.crime || 'Não especificada'}</p>
               </div>
               <div>
                 <p class="text-slate-500 uppercase text-[11px]">Indivíduos Investigados</p>
@@ -1930,7 +1953,6 @@
 
       const codigoHash = "BR-DPF-" + Math.random().toString(36).substring(2, 8).toUpperCase() + "-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
-      // Altera o título da página temporariamente para forçar o nome do PDF sem sobreescrever
       const tituloOriginal = document.title;
       document.title = `Dossie_Policial_ID_${passaporte}`;
 
@@ -1939,7 +1961,6 @@
       folha.innerHTML = `
         <div style="font-family: Arial, Helvetica, sans-serif; color: #111827; max-width: 800px; margin: 0 auto; line-height: 1.35; padding: 15px;">
           
-          <!-- Cabeçalho Oficial com Logo Garantido -->
           <div style="text-align: center; border-bottom: 2px solid #b45309; padding-bottom: 12px; margin-bottom: 15px;">
             <img 
               src="https://upload.wikimedia.org/wikipedia/commons/3/33/Pol%C3%ADcia_Federal.svg" 
@@ -1950,7 +1971,6 @@
             <p style="margin: 2px 0 0 0; font-size: 10px; color: #6b7280; font-weight: bold;">SISINT / DPF • Dossiê de Inteligência e Registro Criminal</p>
           </div>
 
-          <!-- Identificação e Imagem do Suspeito -->
           <div style="display: flex; gap: 16px; margin-bottom: 14px; align-items: stretch;">
             <div style="width: 125px; height: 150px; border: 1.5px solid #9ca3af; border-radius: 4px; overflow: hidden; flex-shrink: 0;">
               <img src="${data.fotoUrl || FOTO_PADRAO}" style="width: 100%; height: 100%; object-fit: cover;" />
@@ -1990,7 +2010,6 @@
             </div>
           </div>
 
-          <!-- Patrimônio Vinculado -->
           <div style="margin-bottom: 14px; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px 12px; background: #fafafa;">
             <h3 style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #374151; margin: 0 0 6px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px;">Vínculos Patrimoniais (Veículos & Bens)</h3>
             <div style="font-size: 10.5px; color: #374151;">
@@ -1999,7 +2018,6 @@
             </div>
           </div>
 
-          <!-- Folha de Antecedentes e Registros -->
           <div style="margin-bottom: 18px; border: 1px solid #e5e7eb; border-radius: 4px; padding: 8px 12px;">
             <h3 style="font-size: 11px; text-transform: uppercase; font-weight: bold; color: #374151; margin: 0 0 8px 0; border-bottom: 1px solid #e5e7eb; padding-bottom: 3px;">Folha de Antecedentes e Registros da Ficha</h3>
             ${(data.historico && data.historico.length) ? data.historico.slice(-5).map((h, i) => `
@@ -2025,7 +2043,7 @@
             <div style="text-align: right; border-left: 1px solid #a7f3d0; padding-left: 14px;">
               <p style="margin: 0; font-size: 9px; text-transform: uppercase; color: #065f46; font-weight: bold;">Autenticação Digital</p>
               <p style="margin: 2px 0; font-family: monospace; font-size: 10px; font-weight: bold; color: #111827;">${codigoHash}</p>
-              <p style="margin: 0; font-size: 8.5px; color: #6b7280;">Verificação de autenticidade validada no Módulo de Auditoria do SISINT</p>
+              <p style="margin: 0; font-size: 8.5px; color: #6b7280;">Verificação validada no Módulo de Auditoria e Corregedoria do SISINT</p>
             </div>
           </div>
 
@@ -2034,7 +2052,6 @@
 
       window.print();
 
-      // Restaura o título original após a impressão
       setTimeout(() => {
         document.title = tituloOriginal;
       }, 1000);
@@ -2081,7 +2098,6 @@
           const historico = data.historico || [];
           const procLimpeza = data.processoLimpeza || null;
 
-          // Cruzamento Automático de Patrimônio
           const snapVeics = await db.collection("veiculos").where("proprietario", "==", pass).get();
           const listaVeiculos = snapVeics.docs.map(d => d.data());
 
